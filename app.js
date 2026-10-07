@@ -23,9 +23,15 @@ function metaPut(key,value){return new Promise((res,rej)=>{const r=tx(META,'read
 function isPlanned(s){return s.status==='planned'}
 function isCompleted(s){return !isPlanned(s)}
 function normaliseType(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase()}
+function canonicalTrainingType(v){
+ const n=normaliseType(v);
+ if(['cardio','conditioning'].includes(n))return 'Conditioning';
+ if(['prepa','preparation physique','s&c','strength & conditioning','strength & conditioning (s&c)','strength and conditioning'].includes(n))return 'Strength & Conditioning (S&C)';
+ return v;
+}
 function isPrivateSession(s){return normaliseType(s.type)==='cours prive'}
-function isCardioSession(s){return normaliseType(s.type)==='cardio'}
-function isPrepaSession(s){return ['prepa','preparation physique'].includes(normaliseType(s.type))}
+function isCardioSession(s){return ['cardio','conditioning'].includes(normaliseType(s.type))}
+function isPrepaSession(s){return ['prepa','preparation physique','s&c','strength & conditioning','strength & conditioning (s&c)','strength and conditioning'].includes(normaliseType(s.type))}
 function isBjjSession(s){return !isCardioSession(s)&&!isPrepaSession(s)}
 function sessionTypeClass(s){return isPrivateSession(s)?'private':isCardioSession(s)?'cardio':isPrepaSession(s)?'prepa':'jjb'}
 function sessionIcon(s){return isCardioSession(s)?'♥️':isPrepaSession(s)?'🏋️':'🥋'}
@@ -76,6 +82,17 @@ async function ensureMeta(){
  }
 }
 
+async function migrateTrainingTypes(){
+ const version=Number(await metaGet('trainingTypesPresetVersion')||0);
+ if(version>=2)return;
+ const all=await getAll();
+ for(const s of all){
+   const type=canonicalTrainingType(s.type);
+   if(type!==s.type)await putSession({...s,type});
+ }
+ await metaPut('trainingTypesPresetVersion',2);
+}
+
 async function init(){
  seed=await fetch('./data/initial-data.json').then(r=>r.json());
  await openDB();
@@ -84,18 +101,19 @@ async function init(){
    await metaPut('seeded',true);
  }
  await ensureMeta();
+ await migrateTrainingTypes();
  sessions=await getAll();
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.7.2');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.8');
 }
 
 async function fillRefs(){
  const customProfessors=await metaGet('customProfessors')||[];
  const customAcademies=await metaGet('customAcademies')||[];
  const refs={...seed.references,
-   types:[...new Set([...(seed.references.types||[]),'Stage','Cardio','Prépa'])],
+   types:[...new Set([...(seed.references.types||[]),'Stage','Conditioning','Strength & Conditioning (S&C)'])],
    professors:[...new Set([...(seed.references.professors||[]),...customProfessors])],
    academies:[...new Set([...(seed.references.academies||[]),...customAcademies])]
  };
@@ -116,6 +134,8 @@ async function renderDashboard(){
  $('#remaining').textContent=fmtH(remaining);
  $('#monthPotential').textContent=fmtH(potential);
  $('#allHours').textContent=fmtH(sum(completedBjj));
+ $('#monthConditioningSessions').textContent=completed().filter(s=>isCardioSession(s)&&inMonth(s,displayMonth)).length;
+ $('#monthSCSessions').textContent=completed().filter(s=>isPrepaSession(s)&&inMonth(s,displayMonth)).length;
  const actualPct=Math.min(100,(actual/goal)*100||0);
  $('#goalActualBar').style.width=actualPct+'%';
  $('#progressLabel').textContent=`${Math.round(actual/goal*100||0)}%`;
@@ -397,7 +417,7 @@ function bind(){
  $('#roadmapForm').onsubmit=async e=>{e.preventDefault();await metaPut('roadmap',{targetBelt:$('#roadTargetBelt').value,tatamiTarget:Number($('#roadTatamiTarget').value),sparringTarget:Number($('#roadSparringTarget').value),tatamiBaseline:Number($('#roadTatamiBaseline').value||0),sparringBaseline:Number($('#roadSparringBaseline').value||0)});$('#roadmapDialog').close();await renderRoadmap()};
 
  $('#exportBtn').onclick=async()=>{
-   const payload={app:'MyBJJ Tracker',version:5,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),customProfessors:await metaGet('customProfessors')||[],customAcademies:await metaGet('customAcademies')||[],sessionTypes:[...new Set([...(seed.references.types||[]),'Stage','Cardio','Prépa'])],sessions};
+   const payload={app:'MyBJJ Tracker',version:6,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),customProfessors:await metaGet('customProfessors')||[],customAcademies:await metaGet('customAcademies')||[],sessionTypes:[...new Set([...(seed.references.types||[]),'Stage','Conditioning','Strength & Conditioning (S&C)'])],sessions};
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MyBJJ_backup_${ymd(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  };
  $('#importInput').onchange=async e=>{
@@ -412,7 +432,7 @@ function bind(){
      const data=JSON.parse(raw);if(!Array.isArray(data.sessions))throw Error('Format invalide : la liste sessions est absente');
      if(!confirm(`Importer ${data.sessions.length} séances ? Les séances locales actuelles seront remplacées.`))return;
      await new Promise((res,rej)=>{const r=tx(STORE,'readwrite').clear();r.onsuccess=res;r.onerror=rej});
-     for(const s of data.sessions)await putSession({...s,status:s.status||'completed',sparringDuration:Number(s.sparringDuration||0)});
+     for(const s of data.sessions)await putSession({...s,type:canonicalTrainingType(s.type),status:s.status||'completed',sparringDuration:Number(s.sparringDuration||0)});
      if(data.monthlyGoal)await metaPut('monthlyGoal',Number(data.monthlyGoal));
      if(data.roadmap)await metaPut('roadmap',data.roadmap);
      if(data.roadTargets)await metaPut('roadTargets',data.roadTargets);
