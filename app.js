@@ -34,7 +34,11 @@ function rows(obj){return Object.entries(obj).sort((a,b)=>b[1].hours-a[1].hours)
 async function ensureMeta(){
  if((await metaGet('monthlyGoal'))==null) await metaPut('monthlyGoal',15);
  if((await metaGet('techniqueProgress'))==null) await metaPut('techniqueProgress',{});
- if((await metaGet('roadTargets'))==null) await metaPut('roadTargets',[...DEFAULT_ROAD_TARGETS]);
+ const presetVersion=Number(await metaGet('roadTargetsPresetVersion')||0);
+ if(presetVersion!==ROAD_TARGET_PRESET_VERSION){
+   await metaPut('roadTargets',[...DEFAULT_ROAD_TARGETS]);
+   await metaPut('roadTargetsPresetVersion',ROAD_TARGET_PRESET_VERSION);
+ }
  if((await metaGet('roadmap'))==null) await metaPut('roadmap',{
    targetBelt:'Ceinture bleue',
    tatamiTarget:200,
@@ -228,7 +232,7 @@ function techniqueStats(progress){
  }));
  return {total,known,mastered,todo:total-known-mastered};
 }
-function techStateLabel(state){return state===2?'Maîtrisée':state===1?'Connue':'À travailler'}
+function techStateLabel(state){return state===2?'Fiable':state===1?'Connue':'À travailler'}
 
 async function renderTechniques(){
  const progress=await getTechniqueProgress(),roadTargets=await metaGet('roadTargets')||[],targetSet=new Set(roadTargets),stats=techniqueStats(progress),q=$('#techSearch').value.toLowerCase().trim();
@@ -239,7 +243,7 @@ async function renderTechniques(){
    const techniques=cat.techniques.filter(t=>!q||t.toLowerCase().includes(q)||cat.label.toLowerCase().includes(q));
    if(!techniques.length)return '';
    const mastered=techniques.filter(t=>Number(progress[techKey(cat.id,t)]||0)===2).length;
-   return `<details class="tech-category" ${index<2?'open':''}><summary>${esc(cat.label)}<span>${mastered}/${techniques.length} maîtrisées</span></summary><div class="tech-list">${techniques.map(t=>{
+   return `<details class="tech-category" ${index<2?'open':''}><summary>${esc(cat.label)}<span>${mastered}/${techniques.length} fiables</span></summary><div class="tech-list">${techniques.map(t=>{
      const key=techKey(cat.id,t),state=Number(progress[key]||0),targeted=targetSet.has(key);
      return `<div class="tech-row"><span class="tech-name">${esc(t)}</span><div class="tech-actions"><button class="target-btn ${targeted?'active':''}" data-road-target="${esc(key)}" title="Inclure dans le parcours">🎯</button><button class="state-btn state-${state}" data-tech-key="${esc(key)}" data-state="${state}">${techStateLabel(state)}</button></div></div>`
    }).join('')}</div></details>`;
@@ -261,10 +265,10 @@ async function renderRoadmap(){
  const sparring=Number(settings.sparringBaseline||0)+sumSparring(completed());
  const tatamiPct=pct(tatami,Number(settings.tatamiTarget||0)),sparringPct=pct(sparring,Number(settings.sparringTarget||0)),techPct=pct(targetMastered,roadTargets.length);
  const overall=Math.round((tatamiPct+sparringPct+techPct)/3);
- $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadGoalSubtitle').textContent=`${targetKnown} cibles connues · ${targetMastered} maîtrisées · ${roadTargets.length} ciblées`;$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
+ $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadGoalSubtitle').textContent=`${targetKnown} connues · ${targetMastered} fiables · ${roadTargets.length} fondamentaux`;$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
  $('#roadTatamiLabel').textContent=`${fmtH(tatami)} / ${fmtH(Number(settings.tatamiTarget||0))}`;$('#roadTatamiBar').style.width=tatamiPct+'%';$('#roadTatamiRemaining').textContent=`${fmtH(Math.max(0,Number(settings.tatamiTarget||0)-tatami))} restantes`;
  $('#roadSparringLabel').textContent=`${fmtH(sparring)} / ${fmtH(Number(settings.sparringTarget||0))}`;$('#roadSparringBar').style.width=sparringPct+'%';$('#roadSparringRemaining').textContent=`${fmtH(Math.max(0,Number(settings.sparringTarget||0)-sparring))} restantes`;
- $('#roadTechLabel').textContent=`${targetMastered} / ${roadTargets.length}`;$('#roadTechBar').style.width=techPct+'%';$('#roadTechRemaining').textContent=`${Math.max(0,roadTargets.length-targetMastered)} techniques cible à maîtriser`;
+ $('#roadTechLabel').textContent=`${targetMastered} / ${roadTargets.length}`;$('#roadTechBar').style.width=techPct+'%';$('#roadTechRemaining').textContent=`${Math.max(0,roadTargets.length-targetMastered)} fondamentaux à rendre fiables`;
  $('#roadCategoryProgress').innerHTML=TECHNIQUE_BANK.map(cat=>{
    const categoryTargets=cat.techniques.map(t=>techKey(cat.id,t)).filter(k=>targetSet.has(k));
    if(!categoryTargets.length)return '';
@@ -277,7 +281,7 @@ async function renderRoadmap(){
    if(!items.length)return '';
    return `<details class="remaining-group"><summary>${esc(cat.label)} <span>${items.length}</span></summary><div>${items.map(x=>`<div class="remaining-tech"><span>${esc(x.name)}</span><small class="state-${x.state}">${x.state===1?'Connue':'À travailler'}</small></div>`).join('')}</div></details>`
  }).join('');
- $('#roadRemainingTechniques').innerHTML=remaining||'<p class="muted">Toutes les techniques cible sont maîtrisées.</p>';
+ $('#roadRemainingTechniques').innerHTML=remaining||'<p class="muted">Tous les fondamentaux ciblés sont fiables.</p>';
 }
 
 async function renderSettings(){
