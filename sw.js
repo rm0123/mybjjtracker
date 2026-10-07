@@ -1,10 +1,10 @@
-const CACHE='mybjj-v4.8.4-planned-label';
+const CACHE='mybjj-v4.9-stats-hours-toggle';
 const ASSETS=[
   './',
   './index.html',
   './styles.css?v=4.8.3',
   './techniques.js?v=4',
-  './app.js?v=4.8',
+  './app.js?v=4.9',
   './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
