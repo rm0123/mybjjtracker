@@ -1,10 +1,10 @@
-const CACHE='mybjj-v4.7.1-prepa-yellow';
+const CACHE='mybjj-v4.7.2-jjb-dashboard';
 const ASSETS=[
   './',
   './index.html',
   './styles.css?v=4.7.1',
   './techniques.js?v=4',
-  './app.js?v=4.7',
+  './app.js?v=4.7.2',
   './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
