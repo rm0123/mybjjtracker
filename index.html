@@ -157,6 +157,11 @@
       <div id="roadCategoryProgress" class="category-progress"></div>
     </article>
 
+    <article class="panel">
+      <div class="panelhead"><h3>Techniques restant à maîtriser</h3><button id="openTechniquesFromRoad" class="secondary small">Gérer les cibles</button></div>
+      <div id="roadRemainingTechniques"></div>
+    </article>
+
     <article class="panel info-panel">
       <h3>Comment lire ce parcours ?</h3>
       <p>Les seuils d’heures et le nombre de techniques sont des objectifs personnels, pas des critères officiels de passage de grade. Ton professeur reste la référence pour la graduation.</p>
@@ -237,7 +242,7 @@
     <label>Objectif tatami (h)<input id="roadTatamiTarget" type="number" min="1" step="1"></label>
     <label>Objectif sparring (h)<input id="roadSparringTarget" type="number" min="0" step="1"></label>
   </div>
-  <label>Objectif techniques maîtrisées<input id="roadTechniqueTarget" type="number" min="1" step="1"></label>
+  <p class="muted">Les techniques de l’objectif se choisissent dans l’onglet Techniques avec le bouton 🎯. Une sélection “fondamentaux ceinture bleue” est proposée par défaut et reste entièrement modifiable.</p>
   <div class="twocol">
     <label>Historique tatami hors app (h)<input id="roadTatamiBaseline" type="number" min="0" step=".5"></label>
     <label>Historique sparring hors app (h)<input id="roadSparringBaseline" type="number" min="0" step=".5"></label>
