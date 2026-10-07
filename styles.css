@@ -116,3 +116,12 @@ label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#4b5563}label in
 .type-dots{display:inline-flex!important;gap:3px;align-items:center}.type-dot{width:6px;height:6px;border-radius:999px;display:inline-block}.type-dot.jjb{background:#3b82f6}.type-dot.private{background:#22c55e}.type-dot.cardio{background:#06b6d4}.type-dot.prepa{background:#eab308}
 
 .training-cards{margin-top:10px}.training-cards article:nth-child(1){border-top:4px solid #06b6d4}.training-cards article:nth-child(2){border-top:4px solid #eab308}.training-cards small{display:block;margin-top:4px;color:var(--muted);font-size:10px}.training-cards strong{display:block}
+
+@media(min-width:700px){
+  .dashboard-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .training-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:699px){
+  .dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .training-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
