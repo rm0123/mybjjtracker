@@ -1,8 +1,8 @@
-const CACHE='mybjj-v4.8.1-dashboard-align';
+const CACHE='mybjj-v4.8.2-secondary-stats';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=4.8.1',
+  './styles.css?v=4.8.2',
   './techniques.js?v=4',
   './app.js?v=4.8',
   './manifest.webmanifest?v=4',
