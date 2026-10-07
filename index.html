@@ -7,37 +7,70 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MyBJJ">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="manifest" href="./manifest.webmanifest?v=4">
+  <link rel="stylesheet" href="./styles.css?v=4">
   <title>MyBJJ Tracker</title>
 </head>
 <body>
 <header>
   <div><div class="eyebrow">MYBJJ</div><h1>🥋 Tracker</h1></div>
-  <button id="addBtn" class="primary">+ Séance</button>
+  <div class="header-actions">
+    <button id="settingsBtn" class="icon-btn" title="Réglages et données">⚙</button>
+    <button id="addBtn" class="primary">+ Séance</button>
+  </div>
 </header>
 
 <main>
   <section id="dashboard" class="view active">
     <div class="monthbar"><button id="prevMonth">‹</button><h2 id="monthTitle"></h2><button id="nextMonth">›</button></div>
+
     <div class="cards">
-      <article><span>Heures du mois</span><strong id="monthHours">0 h</strong></article>
-      <article><span>Séances</span><strong id="monthSessions">0</strong></article>
-      <article><span>Reste à faire</span><strong id="remaining">0 h</strong></article>
-      <article><span>Total</span><strong id="allHours">0 h</strong></article>
+      <article class="accent-blue"><span>Réalisé</span><strong id="monthHours">0 h</strong></article>
+      <article class="accent-purple"><span>Planifié</span><strong id="monthPlanned">0 h</strong></article>
+      <article class="accent-green"><span>Potentiel</span><strong id="monthProjected">0 h</strong></article>
+      <article class="accent-amber"><span>Reste après plan</span><strong id="remainingAfterPlan">0 h</strong></article>
     </div>
+
     <article class="panel">
-      <div class="panelhead"><h3>Objectif mensuel</h3><b id="progressLabel"></b></div>
-      <div class="progress"><i id="progressBar"></i></div>
-      <div class="goalrow"><span id="goalText"></span><button id="goalBtn" class="link">Modifier</button></div>
+      <div class="panelhead">
+        <div>
+          <h3>Objectif mensuel</h3>
+          <p class="muted compact" id="goalSummary"></p>
+        </div>
+        <button id="goalBtn" class="secondary small">Modifier</button>
+      </div>
+      <div class="goal-track">
+        <div id="goalActualBar" class="goal-actual"></div>
+        <div id="goalPlannedBar" class="goal-planned"></div>
+      </div>
+      <div class="goal-legend">
+        <span><i class="legend-dot actual"></i>Réalisé</span>
+        <span><i class="legend-dot planned"></i>Planifié</span>
+        <b id="progressLabel"></b>
+      </div>
     </article>
+
+    <article class="panel potential-panel">
+      <div>
+        <span class="kicker">Projection du mois</span>
+        <h3 id="projectionTitle">0 h potentielles</h3>
+        <p id="projectionAdvice" class="muted"></p>
+      </div>
+      <button id="planSessionBtn" class="plan-cta">Planifier une séance</button>
+    </article>
+
     <article class="panel"><h3>Heures par mois</h3><div id="monthlyChart" class="bars"></div></article>
-    <article class="panel"><h3>Types de séance</h3><div id="typeStats"></div></article>
+    <article class="panel"><h3>Types de séance réalisées</h3><div id="typeStats"></div></article>
     <article class="panel"><h3>Académies / clubs</h3><div id="academyStats"></div></article>
   </section>
 
   <section id="sessions" class="view">
     <div class="sectiontitle"><h2>Séances</h2><span id="sessionCount"></span></div>
+    <div class="segmented" id="sessionFilters">
+      <button data-filter="all" class="active">Toutes</button>
+      <button data-filter="completed">Réalisées</button>
+      <button data-filter="planned">Planifiées</button>
+    </div>
     <input id="search" class="search" placeholder="Rechercher professeur, technique, notes…">
     <div id="sessionList"></div>
   </section>
@@ -47,8 +80,9 @@
     <div class="calendarlegend">
       <span><i class="legend-dot past"></i>Passé</span>
       <span><i class="legend-dot current"></i>Aujourd’hui</span>
-      <span><i class="legend-dot activity"></i>Jour d’activité</span>
-      <span><i class="legend-dot strong"></i>Forte activité</span>
+      <span><i class="legend-dot activity"></i>Activité</span>
+      <span><i class="legend-dot strong"></i>Forte ≥ 2 h</span>
+      <span><i class="legend-dot planned"></i>Planifiée</span>
     </div>
     <div class="weekdays"><b>L</b><b>M</b><b>M</b><b>J</b><b>V</b><b>S</b><b>D</b></div>
     <div id="calendarGrid" class="calendargrid"></div>
@@ -56,48 +90,99 @@
   </section>
 
   <section id="stats" class="view">
-    <div class="sectiontitle"><h2>Statistiques</h2><span class="muted">Vue globale</span></div>
+    <div class="sectiontitle"><h2>Statistiques</h2><span class="muted">Séances réalisées</span></div>
     <div class="cards stats-cards">
       <article><span>Total heures</span><strong id="statsHours">0 h</strong></article>
       <article><span>Total séances</span><strong id="statsSessions">0</strong></article>
       <article><span>Durée moyenne</span><strong id="statsAverage">0 h</strong></article>
       <article><span>Meilleur mois</span><strong id="statsBestMonth">—</strong></article>
     </div>
-
     <article class="panel">
       <div class="panelhead"><h3>Évolution mensuelle</h3><small class="muted">12 derniers mois</small></div>
       <div id="statsTrend" class="trendchart"></div>
     </article>
-
     <div class="chartgrid">
-      <article class="panel chartpanel">
-        <h3>Répartition par type</h3>
-        <div id="typeDonut"></div>
+      <article class="panel chartpanel"><h3>Répartition par type</h3><div id="typeDonut"></div></article>
+      <article class="panel chartpanel"><h3>Répartition par académie</h3><div id="academyDonut"></div></article>
+    </div>
+    <article class="panel"><h3>Heures par professeur</h3><div id="profChart" class="rankchart"></div></article>
+    <article class="panel"><h3>Professeur × académie</h3><div id="crossStats"></div></article>
+  </section>
+
+  <section id="techniques" class="view">
+    <div class="sectiontitle"><h2>Techniques</h2><span id="techniqueTotal" class="muted"></span></div>
+    <div class="cards technique-kpis">
+      <article><span>À travailler</span><strong id="techTodo">0</strong></article>
+      <article><span>Connues</span><strong id="techKnown">0</strong></article>
+      <article><span>Maîtrisées</span><strong id="techMastered">0</strong></article>
+      <article><span>Progression</span><strong id="techPercent">0%</strong></article>
+    </div>
+    <article class="panel">
+      <input id="techSearch" class="search no-margin" placeholder="Rechercher une technique…">
+      <div id="techCategoryFilters" class="chipbar"></div>
+    </article>
+    <div id="techniqueBank"></div>
+  </section>
+
+  <section id="roadmap" class="view">
+    <div class="sectiontitle"><h2>Parcours</h2><button id="roadmapEditBtn" class="secondary small">Configurer</button></div>
+    <article class="road-hero">
+      <span class="kicker">Objectif</span>
+      <h2 id="roadGoalTitle">Ceinture bleue</h2>
+      <p class="muted" id="roadGoalSubtitle">Objectifs personnels configurables</p>
+      <div class="road-overall"><div id="roadOverallBar"></div></div>
+      <strong id="roadOverallPct">0%</strong>
+    </article>
+
+    <div class="road-grid">
+      <article class="panel metric-panel">
+        <div class="metric-head"><span>Temps de tatami</span><b id="roadTatamiLabel">0 / 0 h</b></div>
+        <div class="metric-track"><i id="roadTatamiBar"></i></div>
+        <p id="roadTatamiRemaining" class="muted"></p>
       </article>
-      <article class="panel chartpanel">
-        <h3>Répartition par académie</h3>
-        <div id="academyDonut"></div>
+      <article class="panel metric-panel">
+        <div class="metric-head"><span>Sparring</span><b id="roadSparringLabel">0 / 0 h</b></div>
+        <div class="metric-track"><i id="roadSparringBar"></i></div>
+        <p id="roadSparringRemaining" class="muted"></p>
+      </article>
+      <article class="panel metric-panel">
+        <div class="metric-head"><span>Techniques maîtrisées</span><b id="roadTechLabel">0 / 0</b></div>
+        <div class="metric-track"><i id="roadTechBar"></i></div>
+        <p id="roadTechRemaining" class="muted"></p>
       </article>
     </div>
 
     <article class="panel">
-      <h3>Heures par professeur</h3>
-      <div id="profChart" class="rankchart"></div>
+      <div class="panelhead"><h3>Couverture technique</h3><span class="muted">par famille</span></div>
+      <div id="roadCategoryProgress" class="category-progress"></div>
     </article>
 
     <article class="panel">
-      <h3>Professeur × académie</h3>
-      <div id="crossStats"></div>
+      <div class="panelhead"><h3>Techniques restant à maîtriser</h3><button id="openTechniquesFromRoad" class="secondary small">Gérer les cibles</button></div>
+      <div id="roadRemainingTechniques"></div>
+    </article>
+
+    <article class="panel info-panel">
+      <h3>Comment lire ce parcours ?</h3>
+      <p>Les seuils d’heures et le nombre de techniques sont des objectifs personnels, pas des critères officiels de passage de grade. Ton professeur reste la référence pour la graduation.</p>
+      <p class="muted">Le sparring est calculé à partir du champ “Sparring” de chaque séance + ton éventuel historique renseigné dans la configuration.</p>
     </article>
   </section>
 
   <section id="settings" class="view">
-    <div class="sectiontitle"><h2>Données & sauvegarde</h2></div>
+    <div class="sectiontitle"><h2>Réglages & données</h2><button id="closeSettingsBtn" class="secondary small">Retour</button></div>
+    <article class="panel">
+      <h3>Objectif mensuel</h3>
+      <div class="inline-setting">
+        <label>Heures visées par mois<input id="settingsMonthlyGoal" type="number" min="1" step="0.5"></label>
+        <button id="saveMonthlyGoalBtn" class="dark-btn">Enregistrer</button>
+      </div>
+    </article>
     <article class="panel">
       <h3>Données locales</h3>
-      <p>Les séances sont enregistrées dans IndexedDB sur cet appareil. Aucun compte ni serveur de données n'est utilisé.</p>
+      <p>Les séances, objectifs et niveaux de maîtrise sont enregistrés dans IndexedDB sur cet appareil.</p>
       <div class="stack">
-        <button id="exportBtn" class="primary wide">Exporter le backup JSON</button>
+        <button id="exportBtn" class="dark-btn wide">Exporter le backup JSON</button>
         <label class="secondary wide filelabel">Importer un backup JSON<input id="importInput" type="file" accept=".json,application/json"></label>
       </div>
       <p class="muted" id="storageInfo"></p>
@@ -110,15 +195,20 @@
   <button data-view="sessions">☷<span>Séances</span></button>
   <button data-view="calendar">▦<span>Calendrier</span></button>
   <button data-view="stats">⌁<span>Stats</span></button>
-  <button data-view="settings">⚙<span>Données</span></button>
+  <button data-view="techniques">◎<span>Techniques</span></button>
+  <button data-view="roadmap">◈<span>Parcours</span></button>
 </nav>
 
 <dialog id="sessionDialog">
-<form id="sessionForm" method="dialog">
+<form id="sessionForm">
   <div class="dialoghead"><h2 id="formTitle">Nouvelle séance</h2><button type="button" id="closeDialog">×</button></div>
   <input type="hidden" id="editId">
   <label>Date<input id="fDate" type="date" required></label>
-  <label>Durée (heures)<input id="fDuration" type="number" min=".25" step=".25" value="1.5" required></label>
+  <label>Statut<select id="fStatus"><option value="completed">Réalisée</option><option value="planned">Planifiée</option></select></label>
+  <div class="twocol">
+    <label>Durée totale (h)<input id="fDuration" type="number" min=".25" step=".25" value="1.5" required></label>
+    <label>Sparring (h)<input id="fSparring" type="number" min="0" step=".25" value="0"></label>
+  </div>
   <label>Type<select id="fType"></select></label>
   <label>Professeur<select id="fProfessor"></select></label>
   <label>Académie / Club<select id="fAcademy"></select></label>
@@ -126,9 +216,43 @@
   <label>Créneau<select id="fSlot"></select></label>
   <label>Techniques<input id="fTechniques" placeholder="closed-guard, armbar…"></label>
   <label>Notes<textarea id="fNotes" rows="4"></textarea></label>
-  <div class="actions"><button type="button" id="deleteBtn" class="danger hidden">Supprimer</button><button class="primary" type="submit">Enregistrer</button></div>
+  <div class="actions"><button type="button" id="deleteBtn" class="danger hidden">Supprimer</button><button class="dark-btn" type="submit">Enregistrer</button></div>
 </form>
 </dialog>
 
-<script src="./app.js"></script>
-</body></html>
+<dialog id="goalDialog">
+<form id="goalForm">
+  <div class="dialoghead"><h2>Objectif mensuel</h2><button type="button" id="closeGoalDialog">×</button></div>
+  <label>Nombre d’heures visées<input id="goalInput" type="number" min="1" step=".5" required></label>
+  <p class="muted">Le potentiel du mois = heures réalisées + séances planifiées.</p>
+  <button class="dark-btn" type="submit">Mettre à jour</button>
+</form>
+</dialog>
+
+<dialog id="roadmapDialog">
+<form id="roadmapForm">
+  <div class="dialoghead"><h2>Configurer le parcours</h2><button type="button" id="closeRoadmapDialog">×</button></div>
+  <label>Ceinture visée<select id="roadTargetBelt">
+    <option>Ceinture bleue</option>
+    <option>Ceinture violette</option>
+    <option>Ceinture marron</option>
+    <option>Ceinture noire</option>
+  </select></label>
+  <div class="twocol">
+    <label>Objectif tatami (h)<input id="roadTatamiTarget" type="number" min="1" step="1"></label>
+    <label>Objectif sparring (h)<input id="roadSparringTarget" type="number" min="0" step="1"></label>
+  </div>
+  <p class="muted">Les techniques de l’objectif se choisissent dans l’onglet Techniques avec le bouton 🎯. Une sélection “fondamentaux ceinture bleue” est proposée par défaut et reste entièrement modifiable.</p>
+  <div class="twocol">
+    <label>Historique tatami hors app (h)<input id="roadTatamiBaseline" type="number" min="0" step=".5"></label>
+    <label>Historique sparring hors app (h)<input id="roadSparringBaseline" type="number" min="0" step=".5"></label>
+  </div>
+  <p class="muted">Les seuils sont entièrement personnels et modifiables.</p>
+  <button class="dark-btn" type="submit">Enregistrer le parcours</button>
+</form>
+</dialog>
+
+<script src="./techniques.js?v=4"></script>
+<script src="./app.js?v=4"></script>
+</body>
+</html>
