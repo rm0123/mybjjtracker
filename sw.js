@@ -1,8 +1,8 @@
-const CACHE='mybjj-v4.6.1-private-backup';
+const CACHE='mybjj-v4.6.2-private-green';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=4.6.1',
+  './styles.css?v=4.6.2',
   './techniques.js?v=4',
   './app.js?v=4.6',
   './manifest.webmanifest?v=4',
