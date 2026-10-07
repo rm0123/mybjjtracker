@@ -34,18 +34,39 @@ function rows(obj){return Object.entries(obj).sort((a,b)=>b[1].hours-a[1].hours)
 async function ensureMeta(){
  if((await metaGet('monthlyGoal'))==null) await metaPut('monthlyGoal',15);
  if((await metaGet('techniqueProgress'))==null) await metaPut('techniqueProgress',{});
+
  const presetVersion=Number(await metaGet('roadTargetsPresetVersion')||0);
  if(presetVersion!==ROAD_TARGET_PRESET_VERSION){
    await metaPut('roadTargets',[...DEFAULT_ROAD_TARGETS]);
    await metaPut('roadTargetsPresetVersion',ROAD_TARGET_PRESET_VERSION);
  }
- if((await metaGet('roadmap'))==null) await metaPut('roadmap',{
-   targetBelt:'Ceinture bleue',
-   tatamiTarget:200,
-   sparringTarget:60,
-   tatamiBaseline:0,
-   sparringBaseline:0
- });
+
+ const roadmapPresetVersion=Number(await metaGet('roadmapPresetVersion')||0);
+ let roadmap=await metaGet('roadmap');
+
+ if(roadmap==null){
+   roadmap={
+     targetBelt:'Ceinture bleue',
+     tatamiTarget:300,
+     sparringTarget:80,
+     tatamiBaseline:0,
+     sparringBaseline:0
+   };
+   await metaPut('roadmap',roadmap);
+ }
+
+ if(roadmapPresetVersion<2){
+   const usesOldBlueDefaults=
+     (roadmap.targetBelt||'Ceinture bleue')==='Ceinture bleue' &&
+     Number(roadmap.tatamiTarget)===200 &&
+     Number(roadmap.sparringTarget)===60;
+
+   if(usesOldBlueDefaults){
+     roadmap={...roadmap,tatamiTarget:300,sparringTarget:80};
+     await metaPut('roadmap',roadmap);
+   }
+   await metaPut('roadmapPresetVersion',2);
+ }
 }
 
 async function init(){
@@ -60,7 +81,7 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.5');
 }
 
 async function fillRefs(){
