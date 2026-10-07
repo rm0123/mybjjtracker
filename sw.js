@@ -1,4 +1,4 @@
-const CACHE='mybjj-v4.1';
+const CACHE='mybjj-v4.2-ios-import';
 const ASSETS=[
   './',
   './index.html',
