@@ -1,10 +1,10 @@
-const CACHE='mybjj-v4.4-blue-belt-roadmap';
+const CACHE='mybjj-v4.5-blue-belt-hours';
 const ASSETS=[
   './',
   './index.html',
   './styles.css?v=4',
   './techniques.js?v=4',
-  './app.js?v=4',
+  './app.js?v=4.5',
   './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
