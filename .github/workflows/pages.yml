@@ -13,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: mybjj-pages
   cancel-in-progress: true
 
 jobs:
@@ -22,7 +22,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout production
         uses: actions/checkout@v4
@@ -49,8 +48,11 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
+          name: mybjj-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: public
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: mybjj-pages-${{ github.run_id }}-${{ github.run_attempt }}
