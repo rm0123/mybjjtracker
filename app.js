@@ -22,7 +22,7 @@ function metaPut(key,value){return new Promise((res,rej)=>{const r=tx(META,'read
 
 function isPlanned(s){return s.status==='planned'}
 function isCompleted(s){return !isPlanned(s)}
-function isPrivateSession(s){return String(s.type||'').trim().toLowerCase()==='cours privé'}
+function isPrivateSession(s){return String(s.type||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase()==='cours prive'}
 function completed(){return sessions.filter(isCompleted)}
 function planned(){return sessions.filter(isPlanned)}
 function inMonth(s,d){const x=parseDate(s.date);return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth()}
@@ -192,7 +192,7 @@ function renderDay(){
  if(!selectedDay){$('#daySessions').innerHTML='';return}
  const arr=sessions.filter(s=>s.date===selectedDay);
  const title=parseDate(selectedDay).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
- $('#daySessions').innerHTML=arr.length?`<article class="panel"><h3>${title}</h3>${arr.map(s=>`<div class="statrow"><span>${isPlanned(s)?'🗓':'🥋'} ${esc(s.type)} · ${esc(s.professor)}</span><b>${fmtH(Number(s.duration))}</b><small>${isPlanned(s)?'Planifiée':esc(s.academy)}</small></div>`).join('')}</article>`:`<article class="panel"><h3>${title}</h3><p class="muted">Aucune séance ce jour.</p></article>`;
+ $('#daySessions').innerHTML=arr.length?`<article class="panel"><h3>${title}</h3>${arr.map(s=>`<div class="statrow ${isPrivateSession(s)?'private-stat':''}"><span>${isPlanned(s)?'🗓':'🥋'} ${esc(s.type)} · ${esc(s.professor)}</span><b>${fmtH(Number(s.duration))}</b><small>${isPlanned(s)?'Planifiée':esc(s.academy)}</small></div>`).join('')}</article>`:`<article class="panel"><h3>${title}</h3><p class="muted">Aucune séance ce jour.</p></article>`;
 }
 
 function donutHTML(obj,maxSlices=5){
