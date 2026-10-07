@@ -22,6 +22,7 @@ function metaPut(key,value){return new Promise((res,rej)=>{const r=tx(META,'read
 
 function isPlanned(s){return s.status==='planned'}
 function isCompleted(s){return !isPlanned(s)}
+function isPrivateSession(s){return String(s.type||'').trim().toLowerCase()==='cours privé'}
 function completed(){return sessions.filter(isCompleted)}
 function planned(){return sessions.filter(isPlanned)}
 function inMonth(s,d){const x=parseDate(s.date);return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth()}
@@ -81,7 +82,7 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.5');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.6');
 }
 
 async function fillRefs(){
@@ -137,7 +138,7 @@ function renderSessions(){
    const plannedState=isPlanned(s);
    const status=plannedState?'Planifiée':'Réalisée';
    const extra=Number(s.sparringDuration||0)>0?` · sparring ${fmtH(Number(s.sparringDuration))}`:'';
-   return `<article class="session ${plannedState?'planned':'completed'}" data-id="${esc(s.id)}"><div class="sessiontop"><div><h3>${parseDate(s.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3><p>${esc(s.type)} · ${esc(s.professor)} · ${esc(s.academy)}</p></div><b class="pill ${plannedState?'planned':'completed'}">${status} · ${fmtH(Number(s.duration))}</b></div><p>${extra?extra.slice(3):''}</p>${s.techniques?`<p>🥋 ${esc(s.techniques)}</p>`:''}${s.notes?`<p>${esc(s.notes)}</p>`:''}</article>`
+   return `<article class="session ${plannedState?'planned':'completed'} ${isPrivateSession(s)?'private-session':''}" data-id="${esc(s.id)}"><div class="sessiontop"><div><h3>${parseDate(s.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3><p>${esc(s.type)} · ${esc(s.professor)} · ${esc(s.academy)}</p></div><b class="pill ${plannedState?'planned':'completed'} ${isPrivateSession(s)?'private-pill':''}">${status} · ${fmtH(Number(s.duration))}</b></div><p>${extra?extra.slice(3):''}</p>${s.techniques?`<p>🥋 ${esc(s.techniques)}</p>`:''}${s.notes?`<p>${esc(s.notes)}</p>`:''}</article>`
  }).join('')||'<div class="emptychart">Aucune séance dans ce filtre.</div>';
  document.querySelectorAll('.session[data-id]').forEach(el=>el.onclick=()=>editSession(el.dataset.id));
 }
@@ -158,6 +159,9 @@ function renderCalendar(){
    const ds=ymd(date),all=sessions.filter(s=>s.date===ds);
    const done=all.filter(isCompleted),plan=all.filter(isPlanned);
    const actual=sum(done),plannedHours=sum(plan);
+   const privateDone=done.filter(isPrivateSession),privatePlan=plan.filter(isPrivateSession);
+   const hasPrivate=privateDone.length>0, hasRegular=done.some(s=>!isPrivateSession(s));
+   const hasPrivatePlanned=privatePlan.length>0;
    const other=date.getMonth()!==m;
    const level=actual>=2?3:actual>=1?2:actual>0?1:0;
    const classes=['day'];
@@ -166,6 +170,9 @@ function renderCalendar(){
    if(level)classes.push('activity-'+level);
    if(plannedHours>0)classes.push('planned-day');
    if(actual>0&&plannedHours>0)classes.push('mixed-day');
+   if(hasPrivate&&!hasRegular)classes.push('private-day');
+   if(hasPrivate&&hasRegular)classes.push('private-mixed-type');
+   if(!actual&&hasPrivatePlanned)classes.push('private-planned-day');
    if(ds===today)classes.push('today');
    if(ds===selectedDay)classes.push('selected');
    const meta=[actual>0?`<span>🥋 ${fmtH(actual)}</span>`:'',plannedHours>0?`<span>🗓 ${fmtH(plannedHours)}</span>`:''].join('');
@@ -378,7 +385,7 @@ function bind(){
  $('#roadmapForm').onsubmit=async e=>{e.preventDefault();await metaPut('roadmap',{targetBelt:$('#roadTargetBelt').value,tatamiTarget:Number($('#roadTatamiTarget').value),sparringTarget:Number($('#roadSparringTarget').value),tatamiBaseline:Number($('#roadTatamiBaseline').value||0),sparringBaseline:Number($('#roadSparringBaseline').value||0)});$('#roadmapDialog').close();await renderRoadmap()};
 
  $('#exportBtn').onclick=async()=>{
-   const payload={app:'MyBJJ Tracker',version:4,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),sessions};
+   const payload={app:'MyBJJ Tracker',version:4,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),customProfessors:await metaGet('customProfessors')||[],customAcademies:await metaGet('customAcademies')||[],sessions};
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MyBJJ_backup_${ymd(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  };
  $('#importInput').onchange=async e=>{
@@ -398,7 +405,17 @@ function bind(){
      if(data.roadmap)await metaPut('roadmap',data.roadmap);
      if(data.roadTargets)await metaPut('roadTargets',data.roadTargets);
      if(data.techniqueProgress)await metaPut('techniqueProgress',data.techniqueProgress);
-     sessions=await getAll();await renderAll();alert('Import terminé.');
+
+     const defaultProfessors=new Set((seed.references.professors||[]).map(x=>String(x).trim().toLowerCase()));
+     const defaultAcademies=new Set((seed.references.academies||[]).map(x=>String(x).trim().toLowerCase()));
+     const importedProfessors=[...(Array.isArray(data.customProfessors)?data.customProfessors:[]),...data.sessions.map(s=>s.professor).filter(Boolean)];
+     const importedAcademies=[...(Array.isArray(data.customAcademies)?data.customAcademies:[]),...data.sessions.map(s=>s.academy).filter(Boolean)];
+     const customProfessors=[...new Map(importedProfessors.map(v=>[String(v).trim().toLowerCase(),String(v).trim()])).values()].filter(v=>v&&!defaultProfessors.has(v.toLowerCase()));
+     const customAcademies=[...new Map(importedAcademies.map(v=>[String(v).trim().toLowerCase(),String(v).trim()])).values()].filter(v=>v&&!defaultAcademies.has(v.toLowerCase()));
+     await metaPut('customProfessors',customProfessors);
+     await metaPut('customAcademies',customAcademies);
+
+     sessions=await getAll();await fillRefs();await renderAll();alert('Import terminé.');
    }catch(err){console.error('Import JSON:',err);alert('Impossible d’importer ce fichier JSON. '+(err?.message||'Erreur inconnue.'))}
    finally{e.target.value=''}
  };
