@@ -53,8 +53,8 @@ async function init(){
  }
  await ensureMeta();
  sessions=await getAll();
- const latest=sessions.map(s=>s.date).sort().at(-1);
- if(latest){displayMonth=parseDate(latest);calendarMonth=parseDate(latest)}
+ displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+ calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  fillRefs();bind();await renderAll();
  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4');
 }
@@ -68,25 +68,16 @@ async function renderDashboard(){
  const goal=Number(await metaGet('monthlyGoal')||15);
  const doneMonth=completed().filter(s=>inMonth(s,displayMonth));
  const planMonth=planned().filter(s=>inMonth(s,displayMonth));
- const actual=sum(doneMonth), plannedHours=sum(planMonth), projected=actual+plannedHours;
+ const actual=sum(doneMonth), potential=sum(planMonth), remaining=Math.max(0,goal-actual);
  $('#monthTitle').textContent=monthName(displayMonth);
  $('#monthHours').textContent=fmtH(actual);
- $('#monthPlanned').textContent=fmtH(plannedHours);
- $('#monthProjected').textContent=fmtH(projected);
- $('#remainingAfterPlan').textContent=fmtH(Math.max(0,goal-projected));
+ $('#monthSessions').textContent=doneMonth.length;
+ $('#remaining').textContent=fmtH(remaining);
+ $('#monthPotential').textContent=fmtH(potential);
  const actualPct=Math.min(100,(actual/goal)*100||0);
- const plannedPct=Math.min(Math.max(0,100-actualPct),(plannedHours/goal)*100||0);
  $('#goalActualBar').style.width=actualPct+'%';
- $('#goalPlannedBar').style.width=plannedPct+'%';
- $('#progressLabel').textContent=`${Math.round(projected/goal*100||0)}% potentiel`;
- $('#goalSummary').textContent=`${fmtH(actual)} réalisées + ${fmtH(plannedHours)} planifiées / ${fmtH(goal)}`;
- $('#projectionTitle').textContent=`${fmtH(projected)} potentielles`;
- const remaining=Math.max(0,goal-projected);
- $('#projectionAdvice').textContent=remaining>0
-   ? `Il te manque encore ${fmtH(remaining)} à placer dans ce mois pour atteindre ton objectif.`
-   : projected>goal
-     ? `Ton planning dépasse l’objectif de ${fmtH(projected-goal)}.`
-     : 'Ton planning atteint exactement ton objectif mensuel.';
+ $('#progressLabel').textContent=`${Math.round(actual/goal*100||0)}%`;
+ $('#goalText').textContent=`${fmtH(actual)} / ${fmtH(goal)} · reste ${fmtH(remaining)}`;
  $('#typeStats').innerHTML=rows(group(completed(),'type'));
  $('#academyStats').innerHTML=rows(group(completed(),'academy'));
 
@@ -97,8 +88,8 @@ async function renderDashboard(){
  }
  const max=Math.max(...vals.map(v=>v.actual+v.planned),1);
  $('#monthlyChart').innerHTML=vals.map((v,i)=>{
-   const total=v.actual+v.planned, actualH=v.actual/max*126, plannedH=v.planned/max*126;
-   return `<div class="barwrap"><div class="stackedbar" title="${fmtH(v.actual)} réalisées + ${fmtH(v.planned)} planifiées"><div class="baractual" style="height:${actualH}px"></div><div class="barplanned" style="height:${plannedH}px"></div></div>${shortMonth(new Date(year,i,1))}</div>`
+   const actualH=v.actual/max*126, plannedH=v.planned/max*126;
+   return `<div class="barwrap"><div class="stackedbar" title="${fmtH(v.actual)} réalisées + ${fmtH(v.planned)} potentielles"><div class="baractual" style="height:${actualH}px"></div><div class="barplanned" style="height:${plannedH}px"></div></div>${shortMonth(new Date(year,i,1))}</div>`
  }).join('');
 }
 
@@ -317,7 +308,7 @@ async function openRoadmapDialog(){
 function bind(){
  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
  $('#settingsBtn').onclick=()=>showView('settings');$('#closeSettingsBtn').onclick=()=>showView(previousView);
- $('#addBtn').onclick=()=>openSessionDialog(false);$('#planSessionBtn').onclick=()=>openSessionDialog(true);$('#closeDialog').onclick=()=>$('#sessionDialog').close();
+ $('#addBtn').onclick=()=>openSessionDialog(false);$('#calendarPlanBtn').onclick=()=>{openSessionDialog(true);if(selectedDay)$('#fDate').value=selectedDay};$('#closeDialog').onclick=()=>$('#sessionDialog').close();
  $('#goalBtn').onclick=openGoalDialog;$('#closeGoalDialog').onclick=()=>$('#goalDialog').close();
  $('#roadmapEditBtn').onclick=openRoadmapDialog;$('#closeRoadmapDialog').onclick=()=>$('#roadmapDialog').close();$('#openTechniquesFromRoad').onclick=()=>showView('techniques');
 
