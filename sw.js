@@ -1,4 +1,4 @@
-const CACHE='mybjj-v4.8.3-uniform-kpis';
+const CACHE='mybjj-v4.8.4-planned-label';
 const ASSETS=[
   './',
   './index.html',
