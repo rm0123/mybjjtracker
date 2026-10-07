@@ -1,8 +1,8 @@
-const CACHE='mybjj-v4.8.2-secondary-stats';
+const CACHE='mybjj-v4.8.3-uniform-kpis';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=4.8.2',
+  './styles.css?v=4.8.3',
   './techniques.js?v=4',
   './app.js?v=4.8',
   './manifest.webmanifest?v=4',
