@@ -115,19 +115,18 @@ label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#4b5563}label in
 
 .type-dots{display:inline-flex!important;gap:3px;align-items:center}.type-dot{width:6px;height:6px;border-radius:999px;display:inline-block}.type-dot.jjb{background:#3b82f6}.type-dot.private{background:#22c55e}.type-dot.cardio{background:#06b6d4}.type-dot.prepa{background:#eab308}
 
-.training-summary{margin-top:10px;background:#fff;border-radius:14px;padding:8px 10px;box-shadow:0 1px 2px #00000008;display:grid;grid-template-columns:auto 1fr 1fr;align-items:stretch;gap:8px}
-.training-summary-title{display:flex;align-items:center;padding:0 10px;color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap}
-.training-mini{position:relative;border-radius:10px;background:#fafafa;padding:8px 10px;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden}
-.training-mini::before{content:"";position:absolute;left:0;right:0;top:0;height:3px}
-.training-mini.conditioning-mini::before{background:#06b6d4}.training-mini.sc-mini::before{background:#eab308}
-.training-mini>span{font-size:11px;color:#4b5563;line-height:1.2}.training-mini>div{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
-.training-mini strong{font-size:18px;line-height:1}.training-mini small{font-size:9px;color:var(--muted)}
+.dashboard-kpis{margin-bottom:10px}
+.dashboard-kpis .kpi-card{min-height:104px;border-top:4px solid transparent;display:flex;flex-direction:column;justify-content:center}
+.dashboard-kpis .kpi-card span{font-size:12px;line-height:1.15;min-height:28px;display:flex;align-items:flex-end;margin-bottom:6px}
+.dashboard-kpis .kpi-card strong{font-size:25px;line-height:1}
+.dashboard-kpis .kpi-jjb{border-top-color:#3b82f6}
+.dashboard-kpis .kpi-conditioning{border-top-color:#06b6d4}
+.dashboard-kpis .kpi-sc{border-top-color:#eab308}
+.dashboard-kpis .kpi-conditioning span{font-size:11px;letter-spacing:-.01em}
 
 @media(min-width:700px){
   .dashboard-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
 @media(max-width:699px){
   .dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .training-summary{grid-template-columns:1fr 1fr}
-  .training-summary-title{grid-column:1/-1;padding:2px 2px 0}
 }
