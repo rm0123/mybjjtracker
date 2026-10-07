@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MyBJJ">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <title>MyBJJ Tracker</title>
+</head>
+<body>
+<header>
+  <div><div class="eyebrow">MYBJJ</div><h1>🥋 Tracker</h1></div>
+  <button id="addBtn" class="primary">+ Séance</button>
+</header>
+
+<main>
+  <section id="dashboard" class="view active">
+    <div class="monthbar"><button id="prevMonth">‹</button><h2 id="monthTitle"></h2><button id="nextMonth">›</button></div>
+    <div class="cards">
+      <article><span>Heures du mois</span><strong id="monthHours">0 h</strong></article>
+      <article><span>Séances</span><strong id="monthSessions">0</strong></article>
+      <article><span>Reste à faire</span><strong id="remaining">0 h</strong></article>
+      <article><span>Total</span><strong id="allHours">0 h</strong></article>
+    </div>
+    <article class="panel">
+      <div class="panelhead"><h3>Objectif mensuel</h3><b id="progressLabel"></b></div>
+      <div class="progress"><i id="progressBar"></i></div>
+      <div class="goalrow"><span id="goalText"></span><button id="goalBtn" class="link">Modifier</button></div>
+    </article>
+    <article class="panel"><h3>Heures par mois</h3><div id="monthlyChart" class="bars"></div></article>
+    <article class="panel"><h3>Types de séance</h3><div id="typeStats"></div></article>
+    <article class="panel"><h3>Académies / clubs</h3><div id="academyStats"></div></article>
+  </section>
+
+  <section id="sessions" class="view">
+    <div class="sectiontitle"><h2>Séances</h2><span id="sessionCount"></span></div>
+    <input id="search" class="search" placeholder="Rechercher professeur, technique, notes…">
+    <div id="sessionList"></div>
+  </section>
+
+  <section id="calendar" class="view">
+    <div class="monthbar"><button id="calPrev">‹</button><h2 id="calTitle"></h2><button id="calNext">›</button></div>
+    <div class="weekdays"><b>L</b><b>M</b><b>M</b><b>J</b><b>V</b><b>S</b><b>D</b></div>
+    <div id="calendarGrid" class="calendargrid"></div>
+    <div id="daySessions"></div>
+  </section>
+
+  <section id="stats" class="view">
+    <div class="sectiontitle"><h2>Statistiques</h2></div>
+    <article class="panel"><h3>Par professeur</h3><div id="profStats"></div></article>
+    <article class="panel"><h3>Professeur × académie</h3><div id="crossStats"></div></article>
+  </section>
+
+  <section id="settings" class="view">
+    <div class="sectiontitle"><h2>Données & sauvegarde</h2></div>
+    <article class="panel">
+      <h3>Données locales</h3>
+      <p>Les séances sont enregistrées dans IndexedDB sur cet appareil. Aucun compte ni serveur de données n'est utilisé.</p>
+      <div class="stack">
+        <button id="exportBtn" class="primary wide">Exporter le backup JSON</button>
+        <label class="secondary wide filelabel">Importer un backup JSON<input id="importInput" type="file" accept=".json,application/json"></label>
+      </div>
+      <p class="muted" id="storageInfo"></p>
+    </article>
+  </section>
+</main>
+
+<nav>
+  <button data-view="dashboard" class="active">⌂<span>Accueil</span></button>
+  <button data-view="sessions">☷<span>Séances</span></button>
+  <button data-view="calendar">▦<span>Calendrier</span></button>
+  <button data-view="stats">⌁<span>Stats</span></button>
+  <button data-view="settings">⚙<span>Données</span></button>
+</nav>
+
+<dialog id="sessionDialog">
+<form id="sessionForm" method="dialog">
+  <div class="dialoghead"><h2 id="formTitle">Nouvelle séance</h2><button type="button" id="closeDialog">×</button></div>
+  <input type="hidden" id="editId">
+  <label>Date<input id="fDate" type="date" required></label>
+  <label>Durée (heures)<input id="fDuration" type="number" min=".25" step=".25" value="1.5" required></label>
+  <label>Type<select id="fType"></select></label>
+  <label>Professeur<select id="fProfessor"></select></label>
+  <label>Académie / Club<select id="fAcademy"></select></label>
+  <div class="twocol"><label>Tenue<select id="fGi"></select></label><label>Intensité<select id="fIntensity"></select></label></div>
+  <label>Créneau<select id="fSlot"></select></label>
+  <label>Techniques<input id="fTechniques" placeholder="closed-guard, armbar…"></label>
+  <label>Notes<textarea id="fNotes" rows="4"></textarea></label>
+  <div class="actions"><button type="button" id="deleteBtn" class="danger hidden">Supprimer</button><button class="primary" type="submit">Enregistrer</button></div>
+</form>
+</dialog>
+
+<script src="./app.js"></script>
+</body></html>
