@@ -123,8 +123,9 @@ function trendHTML(data){
  if(!data.length)return '<div class="emptychart">Aucune donnée pour le moment.</div>';
  const W=700,H=230,L=34,R=14,T=22,B=38,innerW=W-L-R,innerH=H-T-B,max=Math.max(...data.map(x=>x.hours),1);
  const x=i=>L+(data.length===1?innerW/2:i*innerW/(data.length-1)), y=v=>T+innerH-(v/max*innerH);
- const points=data.map((d,i)=>`${x(i).toFixed(1)},${y(d.hours).toFixed(1)}`).join(' ');
- const area=`M ${x(0).toFixed(1)} ${T+innerH} L ${points.replaceAll(' ',', L ')} L ${x(data.length-1).toFixed(1)} ${T+innerH} Z`;
+ const coords=data.map((d,i)=>`${x(i).toFixed(1)},${y(d.hours).toFixed(1)}`);
+ const points=coords.join(' ');
+ const area=`M ${x(0).toFixed(1)} ${T+innerH} L ${coords.join(' L ')} L ${x(data.length-1).toFixed(1)} ${T+innerH} Z`;
  let grid='',labels='',dots='';
  for(let i=0;i<4;i++){const gy=T+(innerH*i/3),val=max*(1-i/3);grid+=`<line class="chart-gridline" x1="${L}" y1="${gy}" x2="${W-R}" y2="${gy}"/><text class="chart-axis-label" x="0" y="${gy+4}">${Number(val.toFixed(1))}</text>`}
  data.forEach((d,i)=>{labels+=`<text class="chart-axis-label" text-anchor="middle" x="${x(i)}" y="${H-12}">${d.label}</text>`;dots+=`<circle class="chart-point ${i===data.length-1?'current':''}" cx="${x(i)}" cy="${y(d.hours)}" r="5"><title>${monthName(d.date)} : ${fmtH(d.hours)}</title></circle>`});
