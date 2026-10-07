@@ -1,10 +1,11 @@
-const CACHE='mybjj-v3';
+const CACHE='mybjj-v4';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=3',
-  './app.js?v=3',
-  './manifest.webmanifest?v=3',
+  './styles.css?v=4',
+  './techniques.js?v=4',
+  './app.js?v=4',
+  './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
   './icons/icon-512.svg'
@@ -26,7 +27,6 @@ self.addEventListener('activate',e=>{
 self.addEventListener('fetch',e=>{
   const request=e.request;
   if(request.method!=='GET') return;
-
   e.respondWith(
     fetch(request)
       .then(resp=>{
