@@ -55,13 +55,20 @@ async function init(){
  sessions=await getAll();
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
- fillRefs();bind();await renderAll();
+ await fillRefs();bind();await renderAll();
  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4');
 }
 
-function fillRefs(){
+async function fillRefs(){
+ const customProfessors=await metaGet('customProfessors')||[];
+ const customAcademies=await metaGet('customAcademies')||[];
+ const refs={...seed.references,
+   types:[...new Set([...(seed.references.types||[]),'Stage'])],
+   professors:[...new Set([...(seed.references.professors||[]),...customProfessors])],
+   academies:[...new Set([...(seed.references.academies||[]),...customAcademies])]
+ };
  const map={fType:'types',fProfessor:'professors',fAcademy:'academies',fGi:'gis',fIntensity:'intensities',fSlot:'slots'};
- Object.entries(map).forEach(([id,key])=>{$('#'+id).innerHTML=(seed.references[key]||[]).map(v=>`<option>${esc(v)}</option>`).join('')});
+ Object.entries(map).forEach(([id,key])=>{$('#'+id).innerHTML=(refs[key]||[]).map(v=>`<option>${esc(v)}</option>`).join('')});
 }
 
 async function renderDashboard(){
@@ -322,6 +329,16 @@ function bind(){
  document.querySelectorAll('#sessionFilters button').forEach(b=>b.onclick=()=>{sessionFilter=b.dataset.filter;document.querySelectorAll('#sessionFilters button').forEach(x=>x.classList.toggle('active',x===b));renderSessions()});
 
  $('#fDate').onchange=()=>{if(!$('#editId').value&&$('#fDate').value>ymd(new Date()))$('#fStatus').value='planned'};
+ $('#addProfessorBtn').onclick=async()=>{
+   const v=$('#newProfessor').value.trim();if(!v)return;
+   const vals=await metaGet('customProfessors')||[];if(!vals.some(x=>x.toLowerCase()===v.toLowerCase())){vals.push(v);await metaPut('customProfessors',vals)}
+   await fillRefs();$('#fProfessor').value=v;$('#newProfessor').value='';
+ };
+ $('#addAcademyBtn').onclick=async()=>{
+   const v=$('#newAcademy').value.trim();if(!v)return;
+   const vals=await metaGet('customAcademies')||[];if(!vals.some(x=>x.toLowerCase()===v.toLowerCase())){vals.push(v);await metaPut('customAcademies',vals)}
+   await fillRefs();$('#fAcademy').value=v;$('#newAcademy').value='';
+ };
 
  $('#sessionForm').onsubmit=async e=>{
    e.preventDefault();
