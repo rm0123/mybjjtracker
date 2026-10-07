@@ -43,16 +43,52 @@
   </section>
 
   <section id="calendar" class="view">
-    <div class="monthbar"><button id="calPrev">‹</button><h2 id="calTitle"></h2><button id="calNext">›</button></div>
-    <div class="weekdays"><b>L</b><b>M</b><b>M</b><b>J</b><b>V</b><b>S</b><b>D</b></div>
+    <div id="calendarMonthBar" class="monthbar calendar-monthbar"><button id="calPrev">‹</button><h2 id="calTitle"></h2><button id="calNext">›</button></div>
+    <div class="calendarlegend">
+      <span><i class="legend-dot past"></i>Passé</span>
+      <span><i class="legend-dot current"></i>Aujourd’hui</span>
+      <span><i class="legend-dot activity"></i>Jour d’activité</span>
+      <span><i class="legend-dot strong"></i>Forte activité</span>
+    </div>
+    <div class="weekdays"><b>L</b><b>M</b><b>J</b><b>V</b><b>S</b><b>D</b><b>?</b></div>
     <div id="calendarGrid" class="calendargrid"></div>
     <div id="daySessions"></div>
   </section>
 
   <section id="stats" class="view">
-    <div class="sectiontitle"><h2>Statistiques</h2></div>
-    <article class="panel"><h3>Par professeur</h3><div id="profStats"></div></article>
-    <article class="panel"><h3>Professeur × académie</h3><div id="crossStats"></div></article>
+    <div class="sectiontitle"><h2>Statistiques</h2><span class="muted">Vue globale</span></div>
+    <div class="cards stats-cards">
+      <article><span>Total heures</span><strong id="statsHours">0 h</strong></article>
+      <article><span>Total séances</span><strong id="statsSessions">0</strong></article>
+      <article><span>Durée moyenne</span><strong id="statsAverage">0 h</strong></article>
+      <article><span>Meilleur mois</span><strong id="statsBestMonth">—</strong></article>
+    </div>
+
+    <article class="panel">
+      <div class="panelhead"><h3>Évolution mensuelle</h3><small class="muted">12 derniers mois</small></div>
+      <div id="statsTrend" class="trendchart"></div>
+    </article>
+
+    <div class="chartgrid">
+      <article class="panel chartpanel">
+        <h3>Répartition par type</h3>
+        <div id="typeDonut"></div>
+      </article>
+      <article class="panel chartpanel">
+        <h3>Répartition par académie</h3>
+        <div id="academyDonut"></div>
+      </article>
+    </div>
+
+    <article class="panel">
+      <h3>Heures par professeur</h3>
+      <div id="profChart" class="rankchart"></div>
+    </article>
+
+    <article class="panel">
+      <h3>Professeur × académie</h3>
+      <div id="crossStats"></div>
+    </article>
   </section>
 
   <section id="settings" class="view">
