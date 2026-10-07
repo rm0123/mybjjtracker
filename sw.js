@@ -1,10 +1,10 @@
-const CACHE='mybjj-v4.6.2-private-green';
+const CACHE='mybjj-v4.7-cardio-prepa';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=4.6.2',
+  './styles.css?v=4.7',
   './techniques.js?v=4',
-  './app.js?v=4.6',
+  './app.js?v=4.7',
   './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
