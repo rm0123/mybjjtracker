@@ -1,7 +1,7 @@
 const DB_NAME='mybjj-db-staging', STORE='sessions', META='meta';
 let db, sessions=[], seed;
 let displayMonth=new Date(), calendarMonth=new Date(), selectedDay=null;
-let sessionFilter='all', techCategoryFilter='all', previousView='dashboard';
+let sessionFilter='all', techCategoryFilter='all', previousView='dashboard', statsDisplayMode='hours';
 
 const $=s=>document.querySelector(s);
 const fmtH=n=>`${Number(Number(n||0).toFixed(2))} h`;
@@ -106,7 +106,7 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.8');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.9');
 }
 
 async function fillRefs(){
@@ -235,7 +235,10 @@ function donutHTML(obj,maxSlices=5){
  }
  const total=entries.reduce((a,[,v])=>a+v.hours,0);let cursor=0;
  const stops=entries.map(([,v],i)=>{const start=cursor,end=cursor+(v.hours/total*100);cursor=end;return `${palette[i%palette.length]} ${start.toFixed(2)}% ${end.toFixed(2)}%`});
- const legend=entries.map(([k,v],i)=>`<div class="chartlegend-row"><i style="background:${palette[i%palette.length]}"></i><span>${esc(k)}</span><b>${Math.round(v.hours/total*100)}%</b></div>`).join('');
+ const legend=entries.map(([k,v],i)=>{
+   const value=statsDisplayMode==='percent'?`${Math.round(v.hours/total*100)}%`:fmtH(v.hours);
+   return `<div class="chartlegend-row"><i style="background:${palette[i%palette.length]}"></i><span>${esc(k)}</span><b>${value}</b></div>`;
+ }).join('');
  return `<div class="donut-layout"><div class="donut" style="background:conic-gradient(${stops.join(',')})"><div class="donut-hole"><strong>${fmtH(total)}</strong><span>volume total</span></div></div><div class="chartlegend">${legend}</div></div>`;
 }
 
@@ -388,6 +391,17 @@ function bind(){
  $('#nextMonth').onclick=()=>{displayMonth=new Date(displayMonth.getFullYear(),displayMonth.getMonth()+1,1);renderDashboard()};
  $('#calPrev').onclick=()=>{calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()-1,1);selectedDay=null;renderCalendar()};
  $('#calNext').onclick=()=>{calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,1);selectedDay=null;renderCalendar()};
+
+ $('#statsModeHours').onclick=()=>{
+   statsDisplayMode='hours';
+   $('#statsModeHours').classList.add('active');$('#statsModePercent').classList.remove('active');
+   renderStats();
+ };
+ $('#statsModePercent').onclick=()=>{
+   statsDisplayMode='percent';
+   $('#statsModePercent').classList.add('active');$('#statsModeHours').classList.remove('active');
+   renderStats();
+ };
 
  $('#search').oninput=renderSessions;$('#techSearch').oninput=renderTechniques;
  document.querySelectorAll('#sessionFilters button').forEach(b=>b.onclick=()=>{sessionFilter=b.dataset.filter;document.querySelectorAll('#sessionFilters button').forEach(x=>x.classList.toggle('active',x===b));renderSessions()});
