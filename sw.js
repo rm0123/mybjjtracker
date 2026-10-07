@@ -1,4 +1,4 @@
-const CACHE='mybjj-v4';
+const CACHE='mybjj-v4.1';
 const ASSETS=[
   './',
   './index.html',
