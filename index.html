@@ -25,38 +25,15 @@
     <div class="monthbar"><button id="prevMonth">‹</button><h2 id="monthTitle"></h2><button id="nextMonth">›</button></div>
 
     <div class="cards">
-      <article class="accent-blue"><span>Réalisé</span><strong id="monthHours">0 h</strong></article>
-      <article class="accent-purple"><span>Planifié</span><strong id="monthPlanned">0 h</strong></article>
-      <article class="accent-green"><span>Potentiel</span><strong id="monthProjected">0 h</strong></article>
-      <article class="accent-amber"><span>Reste après plan</span><strong id="remainingAfterPlan">0 h</strong></article>
+      <article><span>Heures du mois</span><strong id="monthHours">0 h</strong></article>
+      <article><span>Séances</span><strong id="monthSessions">0</strong></article>
+      <article><span>Reste à faire</span><strong id="remaining">0 h</strong></article>
+      <article><span>Heures potentielles</span><strong id="monthPotential">0 h</strong></article>
     </div>
-
     <article class="panel">
-      <div class="panelhead">
-        <div>
-          <h3>Objectif mensuel</h3>
-          <p class="muted compact" id="goalSummary"></p>
-        </div>
-        <button id="goalBtn" class="secondary small">Modifier</button>
-      </div>
-      <div class="goal-track">
-        <div id="goalActualBar" class="goal-actual"></div>
-        <div id="goalPlannedBar" class="goal-planned"></div>
-      </div>
-      <div class="goal-legend">
-        <span><i class="legend-dot actual"></i>Réalisé</span>
-        <span><i class="legend-dot planned"></i>Planifié</span>
-        <b id="progressLabel"></b>
-      </div>
-    </article>
-
-    <article class="panel potential-panel">
-      <div>
-        <span class="kicker">Projection du mois</span>
-        <h3 id="projectionTitle">0 h potentielles</h3>
-        <p id="projectionAdvice" class="muted"></p>
-      </div>
-      <button id="planSessionBtn" class="plan-cta">Planifier une séance</button>
+      <div class="panelhead"><h3>Objectif mensuel</h3><b id="progressLabel"></b></div>
+      <div class="goal-track"><div id="goalActualBar" class="goal-actual"></div></div>
+      <div class="goal-legend"><span id="goalText"></span><button id="goalBtn" class="secondary small">Modifier</button></div>
     </article>
 
     <article class="panel"><h3>Heures par mois</h3><div id="monthlyChart" class="bars"></div></article>
@@ -87,6 +64,7 @@
     <div class="weekdays"><b>L</b><b>M</b><b>M</b><b>J</b><b>V</b><b>S</b><b>D</b></div>
     <div id="calendarGrid" class="calendargrid"></div>
     <div id="daySessions"></div>
+    <button id="calendarPlanBtn" class="plan-cta wide">Planifier une séance</button>
   </section>
 
   <section id="stats" class="view">
