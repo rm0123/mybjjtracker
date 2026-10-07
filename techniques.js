@@ -210,59 +210,47 @@ const DEFAULT_ROAD_TARGETS = [
   "dominant-positions::Contrôle latéral (Side Control)",
   "dominant-positions::Knee on Belly",
   "dominant-positions::Contrôle du dos (Back Control)",
-  "dominant-positions::North-South",
+
   "guards::Garde fermée",
   "guards::Garde ouverte",
-  "guards::Garde assise",
   "guards::Half Guard",
   "guards::Knee Shield / Z Guard",
   "guards::Butterfly Guard",
-  "guards::De La Riva",
-  "guards::Single Leg X",
+
   "passes::Toreando Pass",
   "passes::Knee Slice / Knee Cut",
   "passes::Over-Under Pass",
   "passes::Double Under Pass",
-  "passes::Stack Pass",
-  "passes::Leg Drag",
-  "passes::X-Pass",
-  "positions::Turtle",
-  "positions::Front Headlock",
-  "positions::Dogfight",
-  "positions::Standing Base",
+
   "escapes::Bridge & Roll Escape depuis Mount",
   "escapes::Elbow-Knee Escape depuis Mount",
   "escapes::Frame & Hip Escape depuis Side Control",
   "escapes::Underhook Escape depuis Side Control",
-  "escapes::Knee on Belly Escape",
   "escapes::Back Escape - côté sûr",
   "escapes::Turtle Escape",
   "escapes::Technical Stand Up",
+
   "sweeps::Scissor Sweep",
   "sweeps::Hip Bump Sweep",
-  "sweeps::Flower Sweep",
   "sweeps::Butterfly Sweep",
   "sweeps::Tripod Sweep",
-  "sweeps::De La Riva Sweep",
-  "sweeps::Dogfight / Old School Sweep",
+
   "chokes::Rear Naked Choke",
   "chokes::Cross Collar Choke",
   "chokes::Triangle Choke",
   "chokes::Guillotine",
-  "chokes::Ezekiel Choke",
-  "chokes::Bow & Arrow Choke",
+
   "joint-locks::Armbar depuis Mount",
   "joint-locks::Armbar depuis Guard",
   "joint-locks::Kimura",
-  "joint-locks::Americana",
+
   "leg-locks::Straight Ankle Lock",
+
   "takedowns::Double Leg",
   "takedowns::Single Leg",
-  "takedowns::Snapdown",
-  "takedowns::Body Lock Takedown",
+
   "transitions::Side Control vers Mount",
-  "transitions::Side Control vers Knee on Belly",
-  "transitions::Turtle vers Back Control",
-  "transitions::Front Headlock vers Back Control",
-  "transitions::Back Control vers Mount"
+  "transitions::Turtle vers Back Control"
 ];
+
+const ROAD_TARGET_PRESET_VERSION = 2;
