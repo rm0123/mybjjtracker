@@ -221,14 +221,19 @@ function techKey(categoryId,name){return `${categoryId}::${name}`}
 async function getTechniqueProgress(){return (await metaGet('techniqueProgress'))||{}}
 function techniqueStats(progress){
  let known=0,mastered=0,total=0;
- TECHNIQUE_BANK.forEach(c=>c.techniques.forEach(t=>{total++;const state=Number(progress[techKey(c.id,t)]||0);if(state>=1)known++;if(state===2)mastered++}));
- return {total,known,mastered,todo:total-known};
+ TECHNIQUE_BANK.forEach(c=>c.techniques.forEach(t=>{
+   total++;
+   const state=Number(progress[techKey(c.id,t)]||0);
+   if(state===1)known++;
+   if(state===2)mastered++;
+ }));
+ return {total,known,mastered,todo:total-known-mastered};
 }
 function techStateLabel(state){return state===2?'Maîtrisée':state===1?'Connue':'À travailler'}
 
 async function renderTechniques(){
  const progress=await getTechniqueProgress(),stats=techniqueStats(progress),q=$('#techSearch').value.toLowerCase().trim();
- $('#techniqueTotal').textContent=`${stats.total} techniques`;$('#techTodo').textContent=stats.todo;$('#techKnown').textContent=stats.known;$('#techMastered').textContent=stats.mastered;$('#techPercent').textContent=`${Math.round((stats.known+stats.mastered)/(stats.total*2)*100||0)}%`;
+ $('#techniqueTotal').textContent=`${stats.total} techniques`;$('#techTodo').textContent=stats.todo;$('#techKnown').textContent=stats.known;$('#techMastered').textContent=stats.mastered;$('#techPercent').textContent=`${Math.round((stats.known+2*stats.mastered)/(stats.total*2)*100||0)}%`;
  $('#techCategoryFilters').innerHTML=[['all','Toutes'],...TECHNIQUE_BANK.map(c=>[c.id,c.label])].map(([id,label])=>`<button class="chip ${techCategoryFilter===id?'active':''}" data-tech-filter="${id}">${esc(label)}</button>`).join('');
  document.querySelectorAll('[data-tech-filter]').forEach(b=>b.onclick=()=>{techCategoryFilter=b.dataset.techFilter;renderTechniques()});
  const categories=TECHNIQUE_BANK.filter(c=>techCategoryFilter==='all'||c.id===techCategoryFilter).map((c,index)=>{
@@ -249,7 +254,7 @@ async function renderRoadmap(){
  const sparring=Number(settings.sparringBaseline||0)+sumSparring(completed());
  const tatamiPct=pct(tatami,Number(settings.tatamiTarget||0)),sparringPct=pct(sparring,Number(settings.sparringTarget||0)),techPct=pct(stats.mastered,Number(settings.techniqueTarget||0));
  const overall=Math.round((tatamiPct+sparringPct+techPct)/3);
- $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
+ $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadGoalSubtitle').textContent=`${stats.known} connues · ${stats.mastered} maîtrisées · objectifs personnels`;$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
  $('#roadTatamiLabel').textContent=`${fmtH(tatami)} / ${fmtH(Number(settings.tatamiTarget||0))}`;$('#roadTatamiBar').style.width=tatamiPct+'%';$('#roadTatamiRemaining').textContent=`${fmtH(Math.max(0,Number(settings.tatamiTarget||0)-tatami))} restantes`;
  $('#roadSparringLabel').textContent=`${fmtH(sparring)} / ${fmtH(Number(settings.sparringTarget||0))}`;$('#roadSparringBar').style.width=sparringPct+'%';$('#roadSparringRemaining').textContent=`${fmtH(Math.max(0,Number(settings.sparringTarget||0)-sparring))} restantes`;
  $('#roadTechLabel').textContent=`${stats.mastered} / ${Number(settings.techniqueTarget||0)}`;$('#roadTechBar').style.width=techPct+'%';$('#roadTechRemaining').textContent=`${Math.max(0,Number(settings.techniqueTarget||0)-stats.mastered)} techniques à maîtriser`;
@@ -272,7 +277,7 @@ function showView(id){
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
  if(id!=='settings')previousView=id;
- window.scrollTo({top:0,behavior:'instant'});
+ window.scrollTo(0,0);
 }
 
 function resetForm(plannedDefault=false){
