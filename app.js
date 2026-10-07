@@ -1,4 +1,4 @@
-const DB_NAME='mybjj-db', STORE='sessions', META='meta';
+const DB_NAME='mybjj-db-staging', STORE='sessions', META='meta';
 let db, sessions=[], seed;
 let displayMonth=new Date(), calendarMonth=new Date(), selectedDay=null;
 let sessionFilter='all', techCategoryFilter='all', previousView='dashboard';
