@@ -22,7 +22,12 @@ function metaPut(key,value){return new Promise((res,rej)=>{const r=tx(META,'read
 
 function isPlanned(s){return s.status==='planned'}
 function isCompleted(s){return !isPlanned(s)}
-function isPrivateSession(s){return String(s.type||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase()==='cours prive'}
+function normaliseType(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase()}
+function isPrivateSession(s){return normaliseType(s.type)==='cours prive'}
+function isCardioSession(s){return normaliseType(s.type)==='cardio'}
+function isPrepaSession(s){return ['prepa','preparation physique'].includes(normaliseType(s.type))}
+function sessionTypeClass(s){return isPrivateSession(s)?'private':isCardioSession(s)?'cardio':isPrepaSession(s)?'prepa':'jjb'}
+function sessionIcon(s){return isCardioSession(s)?'♥️':isPrepaSession(s)?'🏋️':'🥋'}
 function completed(){return sessions.filter(isCompleted)}
 function planned(){return sessions.filter(isPlanned)}
 function inMonth(s,d){const x=parseDate(s.date);return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth()}
@@ -82,14 +87,14 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.6');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.7');
 }
 
 async function fillRefs(){
  const customProfessors=await metaGet('customProfessors')||[];
  const customAcademies=await metaGet('customAcademies')||[];
  const refs={...seed.references,
-   types:[...new Set([...(seed.references.types||[]),'Stage'])],
+   types:[...new Set([...(seed.references.types||[]),'Stage','Cardio','Prépa'])],
    professors:[...new Set([...(seed.references.professors||[]),...customProfessors])],
    academies:[...new Set([...(seed.references.academies||[]),...customAcademies])]
  };
@@ -138,7 +143,8 @@ function renderSessions(){
    const plannedState=isPlanned(s);
    const status=plannedState?'Planifiée':'Réalisée';
    const extra=Number(s.sparringDuration||0)>0?` · sparring ${fmtH(Number(s.sparringDuration))}`:'';
-   return `<article class="session ${plannedState?'planned':'completed'} ${isPrivateSession(s)?'private-session':''}" data-id="${esc(s.id)}"><div class="sessiontop"><div><h3>${parseDate(s.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3><p>${esc(s.type)} · ${esc(s.professor)} · ${esc(s.academy)}</p></div><b class="pill ${plannedState?'planned':'completed'} ${isPrivateSession(s)?'private-pill':''}">${status} · ${fmtH(Number(s.duration))}</b></div><p>${extra?extra.slice(3):''}</p>${s.techniques?`<p>🥋 ${esc(s.techniques)}</p>`:''}${s.notes?`<p>${esc(s.notes)}</p>`:''}</article>`
+   const typeClass=sessionTypeClass(s);
+   return `<article class="session ${plannedState?'planned':'completed'} ${typeClass}-session" data-id="${esc(s.id)}"><div class="sessiontop"><div><h3>${parseDate(s.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</h3><p>${sessionIcon(s)} ${esc(s.type)} · ${esc(s.professor)} · ${esc(s.academy)}</p></div><b class="pill ${plannedState?'planned':'completed'} ${typeClass}-pill">${status} · ${fmtH(Number(s.duration))}</b></div><p>${extra?extra.slice(3):''}</p>${s.techniques?`<p>🥋 ${esc(s.techniques)}</p>`:''}${s.notes?`<p>${esc(s.notes)}</p>`:''}</article>`
  }).join('')||'<div class="emptychart">Aucune séance dans ce filtre.</div>';
  document.querySelectorAll('.session[data-id]').forEach(el=>el.onclick=()=>editSession(el.dataset.id));
 }
@@ -159,9 +165,9 @@ function renderCalendar(){
    const ds=ymd(date),all=sessions.filter(s=>s.date===ds);
    const done=all.filter(isCompleted),plan=all.filter(isPlanned);
    const actual=sum(done),plannedHours=sum(plan);
-   const privateDone=done.filter(isPrivateSession),privatePlan=plan.filter(isPrivateSession);
-   const hasPrivate=privateDone.length>0, hasRegular=done.some(s=>!isPrivateSession(s));
-   const hasPrivatePlanned=privatePlan.length>0;
+   const doneKinds=[...new Set(done.map(sessionTypeClass))],planKinds=[...new Set(plan.map(sessionTypeClass))];
+   const onlyKind=doneKinds.length===1?doneKinds[0]:null;
+   const onlyPlanKind=planKinds.length===1?planKinds[0]:null;
    const other=date.getMonth()!==m;
    const level=actual>=2?3:actual>=1?2:actual>0?1:0;
    const classes=['day'];
@@ -170,12 +176,13 @@ function renderCalendar(){
    if(level)classes.push('activity-'+level);
    if(plannedHours>0)classes.push('planned-day');
    if(actual>0&&plannedHours>0)classes.push('mixed-day');
-   if(hasPrivate&&!hasRegular)classes.push('private-day');
-   if(hasPrivate&&hasRegular)classes.push('private-mixed-type');
-   if(!actual&&hasPrivatePlanned)classes.push('private-planned-day');
+   if(onlyKind&&onlyKind!=='jjb')classes.push(onlyKind+'-day');
+   if(doneKinds.length>1)classes.push('multi-type-day');
+   if(!actual&&onlyPlanKind&&onlyPlanKind!=='jjb')classes.push(onlyPlanKind+'-planned-day');
    if(ds===today)classes.push('today');
    if(ds===selectedDay)classes.push('selected');
-   const meta=[actual>0?`<span>🥋 ${fmtH(actual)}</span>`:'',plannedHours>0?`<span>🗓 ${fmtH(plannedHours)}</span>`:''].join('');
+   const actualIcon=onlyKind==='cardio'?'♥️':onlyKind==='prepa'?'🏋️':onlyKind==='private'?'🥋':'🥋';
+   const meta=[actual>0?`<span>${actualIcon} ${fmtH(actual)}</span>`:'',plannedHours>0?`<span>🗓 ${fmtH(plannedHours)}</span>`:''].join('');
    html+=`<button class="${classes.join(' ')}" data-date="${ds}" data-other="${other?'1':'0'}"><span class="daynum">${date.getDate()}</span><div class="daymeta">${meta}</div></button>`;
  }
  $('#calendarGrid').innerHTML=html;
@@ -192,7 +199,7 @@ function renderDay(){
  if(!selectedDay){$('#daySessions').innerHTML='';return}
  const arr=sessions.filter(s=>s.date===selectedDay);
  const title=parseDate(selectedDay).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
- $('#daySessions').innerHTML=arr.length?`<article class="panel"><h3>${title}</h3>${arr.map(s=>`<div class="statrow ${isPrivateSession(s)?'private-stat':''}"><span>${isPlanned(s)?'🗓':'🥋'} ${esc(s.type)} · ${esc(s.professor)}</span><b>${fmtH(Number(s.duration))}</b><small>${isPlanned(s)?'Planifiée':esc(s.academy)}</small></div>`).join('')}</article>`:`<article class="panel"><h3>${title}</h3><p class="muted">Aucune séance ce jour.</p></article>`;
+ $('#daySessions').innerHTML=arr.length?`<article class="panel"><h3>${title}</h3>${arr.map(s=>`<div class="statrow ${sessionTypeClass(s)}-stat"><span>${isPlanned(s)?'🗓':sessionIcon(s)} ${esc(s.type)} · ${esc(s.professor)}</span><b>${fmtH(Number(s.duration))}</b><small>${isPlanned(s)?'Planifiée':esc(s.academy)}</small></div>`).join('')}</article>`:`<article class="panel"><h3>${title}</h3><p class="muted">Aucune séance ce jour.</p></article>`;
 }
 
 function donutHTML(obj,maxSlices=5){
@@ -385,7 +392,7 @@ function bind(){
  $('#roadmapForm').onsubmit=async e=>{e.preventDefault();await metaPut('roadmap',{targetBelt:$('#roadTargetBelt').value,tatamiTarget:Number($('#roadTatamiTarget').value),sparringTarget:Number($('#roadSparringTarget').value),tatamiBaseline:Number($('#roadTatamiBaseline').value||0),sparringBaseline:Number($('#roadSparringBaseline').value||0)});$('#roadmapDialog').close();await renderRoadmap()};
 
  $('#exportBtn').onclick=async()=>{
-   const payload={app:'MyBJJ Tracker',version:4,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),customProfessors:await metaGet('customProfessors')||[],customAcademies:await metaGet('customAcademies')||[],sessions};
+   const payload={app:'MyBJJ Tracker',version:5,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),customProfessors:await metaGet('customProfessors')||[],customAcademies:await metaGet('customAcademies')||[],sessionTypes:[...new Set([...(seed.references.types||[]),'Stage','Cardio','Prépa'])],sessions};
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MyBJJ_backup_${ymd(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  };
  $('#importInput').onchange=async e=>{
