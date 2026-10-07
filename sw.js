@@ -1,10 +1,10 @@
-const CACHE='mybjj-v4.7.2-jjb-dashboard';
+const CACHE='mybjj-v4.8-conditioning-sc';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=4.7.1',
+  './styles.css?v=4.8',
   './techniques.js?v=4',
-  './app.js?v=4.7.2',
+  './app.js?v=4.8',
   './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
