@@ -34,11 +34,11 @@ function rows(obj){return Object.entries(obj).sort((a,b)=>b[1].hours-a[1].hours)
 async function ensureMeta(){
  if((await metaGet('monthlyGoal'))==null) await metaPut('monthlyGoal',15);
  if((await metaGet('techniqueProgress'))==null) await metaPut('techniqueProgress',{});
+ if((await metaGet('roadTargets'))==null) await metaPut('roadTargets',[...DEFAULT_ROAD_TARGETS]);
  if((await metaGet('roadmap'))==null) await metaPut('roadmap',{
    targetBelt:'Ceinture bleue',
    tatamiTarget:200,
    sparringTarget:60,
-   techniqueTarget:40,
    tatamiBaseline:0,
    sparringBaseline:0
  });
@@ -232,36 +232,53 @@ function techniqueStats(progress){
 function techStateLabel(state){return state===2?'Maîtrisée':state===1?'Connue':'À travailler'}
 
 async function renderTechniques(){
- const progress=await getTechniqueProgress(),stats=techniqueStats(progress),q=$('#techSearch').value.toLowerCase().trim();
+ const progress=await getTechniqueProgress(),roadTargets=await metaGet('roadTargets')||[],targetSet=new Set(roadTargets),stats=techniqueStats(progress),q=$('#techSearch').value.toLowerCase().trim();
  $('#techniqueTotal').textContent=`${stats.total} techniques`;$('#techTodo').textContent=stats.todo;$('#techKnown').textContent=stats.known;$('#techMastered').textContent=stats.mastered;$('#techPercent').textContent=`${Math.round((stats.known+2*stats.mastered)/(stats.total*2)*100||0)}%`;
  $('#techCategoryFilters').innerHTML=[['all','Toutes'],...TECHNIQUE_BANK.map(c=>[c.id,c.label])].map(([id,label])=>`<button class="chip ${techCategoryFilter===id?'active':''}" data-tech-filter="${id}">${esc(label)}</button>`).join('');
  document.querySelectorAll('[data-tech-filter]').forEach(b=>b.onclick=()=>{techCategoryFilter=b.dataset.techFilter;renderTechniques()});
- const categories=TECHNIQUE_BANK.filter(c=>techCategoryFilter==='all'||c.id===techCategoryFilter).map((c,index)=>{
-   const techniques=c.techniques.filter(t=>!q||t.toLowerCase().includes(q)||c.label.toLowerCase().includes(q));
+ const categories=TECHNIQUE_BANK.filter(c=>techCategoryFilter==='all'||c.id===techCategoryFilter).map((cat,index)=>{
+   const techniques=cat.techniques.filter(t=>!q||t.toLowerCase().includes(q)||cat.label.toLowerCase().includes(q));
    if(!techniques.length)return '';
-   const mastered=techniques.filter(t=>Number(progress[techKey(c.id,t)]||0)===2).length;
-   return `<details class="tech-category" ${index<2?'open':''}><summary>${esc(c.label)}<span>${mastered}/${techniques.length} maîtrisées</span></summary><div class="tech-list">${techniques.map(t=>{const state=Number(progress[techKey(c.id,t)]||0);return `<div class="tech-row"><span class="tech-name">${esc(t)}</span><button class="state-btn state-${state}" data-tech-key="${esc(techKey(c.id,t))}" data-state="${state}">${techStateLabel(state)}</button></div>`}).join('')}</div></details>`;
+   const mastered=techniques.filter(t=>Number(progress[techKey(cat.id,t)]||0)===2).length;
+   return `<details class="tech-category" ${index<2?'open':''}><summary>${esc(cat.label)}<span>${mastered}/${techniques.length} maîtrisées</span></summary><div class="tech-list">${techniques.map(t=>{
+     const key=techKey(cat.id,t),state=Number(progress[key]||0),targeted=targetSet.has(key);
+     return `<div class="tech-row"><span class="tech-name">${esc(t)}</span><div class="tech-actions"><button class="target-btn ${targeted?'active':''}" data-road-target="${esc(key)}" title="Inclure dans le parcours">🎯</button><button class="state-btn state-${state}" data-tech-key="${esc(key)}" data-state="${state}">${techStateLabel(state)}</button></div></div>`
+   }).join('')}</div></details>`;
  }).join('');
  $('#techniqueBank').innerHTML=categories||'<div class="emptychart">Aucune technique trouvée.</div>';
  document.querySelectorAll('[data-tech-key]').forEach(b=>b.onclick=async()=>{
    const p=await getTechniqueProgress(),next=(Number(b.dataset.state)+1)%3;p[b.dataset.techKey]=next;await metaPut('techniqueProgress',p);await renderTechniques();await renderRoadmap();
  });
+ document.querySelectorAll('[data-road-target]').forEach(b=>b.onclick=async()=>{
+   const targets=await metaGet('roadTargets')||[],key=b.dataset.roadTarget,next=targets.includes(key)?targets.filter(x=>x!==key):[...targets,key];
+   await metaPut('roadTargets',next);await renderTechniques();await renderRoadmap();
+ });
 }
 
 async function renderRoadmap(){
- const settings=await metaGet('roadmap'),progress=await getTechniqueProgress(),stats=techniqueStats(progress);
+ const settings=await metaGet('roadmap'),progress=await getTechniqueProgress(),roadTargets=await metaGet('roadTargets')||[];
+ const targetSet=new Set(roadTargets),targetStates=roadTargets.map(k=>Number(progress[k]||0)),targetMastered=targetStates.filter(x=>x===2).length,targetKnown=targetStates.filter(x=>x===1).length;
  const tatami=Number(settings.tatamiBaseline||0)+sum(completed());
  const sparring=Number(settings.sparringBaseline||0)+sumSparring(completed());
- const tatamiPct=pct(tatami,Number(settings.tatamiTarget||0)),sparringPct=pct(sparring,Number(settings.sparringTarget||0)),techPct=pct(stats.mastered,Number(settings.techniqueTarget||0));
+ const tatamiPct=pct(tatami,Number(settings.tatamiTarget||0)),sparringPct=pct(sparring,Number(settings.sparringTarget||0)),techPct=pct(targetMastered,roadTargets.length);
  const overall=Math.round((tatamiPct+sparringPct+techPct)/3);
- $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadGoalSubtitle').textContent=`${stats.known} connues · ${stats.mastered} maîtrisées · objectifs personnels`;$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
+ $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadGoalSubtitle').textContent=`${targetKnown} cibles connues · ${targetMastered} maîtrisées · ${roadTargets.length} ciblées`;$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
  $('#roadTatamiLabel').textContent=`${fmtH(tatami)} / ${fmtH(Number(settings.tatamiTarget||0))}`;$('#roadTatamiBar').style.width=tatamiPct+'%';$('#roadTatamiRemaining').textContent=`${fmtH(Math.max(0,Number(settings.tatamiTarget||0)-tatami))} restantes`;
  $('#roadSparringLabel').textContent=`${fmtH(sparring)} / ${fmtH(Number(settings.sparringTarget||0))}`;$('#roadSparringBar').style.width=sparringPct+'%';$('#roadSparringRemaining').textContent=`${fmtH(Math.max(0,Number(settings.sparringTarget||0)-sparring))} restantes`;
- $('#roadTechLabel').textContent=`${stats.mastered} / ${Number(settings.techniqueTarget||0)}`;$('#roadTechBar').style.width=techPct+'%';$('#roadTechRemaining').textContent=`${Math.max(0,Number(settings.techniqueTarget||0)-stats.mastered)} techniques à maîtriser`;
- $('#roadCategoryProgress').innerHTML=TECHNIQUE_BANK.map(c=>{
-   const mastered=c.techniques.filter(t=>Number(progress[techKey(c.id,t)]||0)===2).length,percent=Math.round(mastered/c.techniques.length*100||0);
-   return `<div class="category-line"><span>${esc(c.label)}</span><div class="ranktrack"><div class="rankfill" style="width:${percent}%"></div></div><b>${mastered}/${c.techniques.length}</b></div>`
+ $('#roadTechLabel').textContent=`${targetMastered} / ${roadTargets.length}`;$('#roadTechBar').style.width=techPct+'%';$('#roadTechRemaining').textContent=`${Math.max(0,roadTargets.length-targetMastered)} techniques cible à maîtriser`;
+ $('#roadCategoryProgress').innerHTML=TECHNIQUE_BANK.map(cat=>{
+   const categoryTargets=cat.techniques.map(t=>techKey(cat.id,t)).filter(k=>targetSet.has(k));
+   if(!categoryTargets.length)return '';
+   const mastered=categoryTargets.filter(k=>Number(progress[k]||0)===2).length,percent=Math.round(mastered/categoryTargets.length*100||0);
+   return `<div class="category-line"><span>${esc(cat.label)}</span><div class="ranktrack"><div class="rankfill" style="width:${percent}%"></div></div><b>${mastered}/${categoryTargets.length}</b></div>`
  }).join('');
+
+ const remaining=TECHNIQUE_BANK.map(cat=>{
+   const items=cat.techniques.map(t=>({key:techKey(cat.id,t),name:t,state:Number(progress[techKey(cat.id,t)]||0)})).filter(x=>targetSet.has(x.key)&&x.state<2);
+   if(!items.length)return '';
+   return `<details class="remaining-group"><summary>${esc(cat.label)} <span>${items.length}</span></summary><div>${items.map(x=>`<div class="remaining-tech"><span>${esc(x.name)}</span><small class="state-${x.state}">${x.state===1?'Connue':'À travailler'}</small></div>`).join('')}</div></details>`
+ }).join('');
+ $('#roadRemainingTechniques').innerHTML=remaining||'<p class="muted">Toutes les techniques cible sont maîtrisées.</p>';
 }
 
 async function renderSettings(){
@@ -294,7 +311,7 @@ async function openGoalDialog(){
  $('#goalInput').value=Number(await metaGet('monthlyGoal')||15);$('#goalDialog').showModal();
 }
 async function openRoadmapDialog(){
- const r=await metaGet('roadmap');$('#roadTargetBelt').value=r.targetBelt;$('#roadTatamiTarget').value=r.tatamiTarget;$('#roadSparringTarget').value=r.sparringTarget;$('#roadTechniqueTarget').value=r.techniqueTarget;$('#roadTatamiBaseline').value=r.tatamiBaseline||0;$('#roadSparringBaseline').value=r.sparringBaseline||0;$('#roadmapDialog').showModal();
+ const r=await metaGet('roadmap');$('#roadTargetBelt').value=r.targetBelt;$('#roadTatamiTarget').value=r.tatamiTarget;$('#roadSparringTarget').value=r.sparringTarget;$('#roadTatamiBaseline').value=r.tatamiBaseline||0;$('#roadSparringBaseline').value=r.sparringBaseline||0;$('#roadmapDialog').showModal();
 }
 
 function bind(){
@@ -302,7 +319,7 @@ function bind(){
  $('#settingsBtn').onclick=()=>showView('settings');$('#closeSettingsBtn').onclick=()=>showView(previousView);
  $('#addBtn').onclick=()=>openSessionDialog(false);$('#planSessionBtn').onclick=()=>openSessionDialog(true);$('#closeDialog').onclick=()=>$('#sessionDialog').close();
  $('#goalBtn').onclick=openGoalDialog;$('#closeGoalDialog').onclick=()=>$('#goalDialog').close();
- $('#roadmapEditBtn').onclick=openRoadmapDialog;$('#closeRoadmapDialog').onclick=()=>$('#roadmapDialog').close();
+ $('#roadmapEditBtn').onclick=openRoadmapDialog;$('#closeRoadmapDialog').onclick=()=>$('#roadmapDialog').close();$('#openTechniquesFromRoad').onclick=()=>showView('techniques');
 
  $('#prevMonth').onclick=()=>{displayMonth=new Date(displayMonth.getFullYear(),displayMonth.getMonth()-1,1);renderDashboard()};
  $('#nextMonth').onclick=()=>{displayMonth=new Date(displayMonth.getFullYear(),displayMonth.getMonth()+1,1);renderDashboard()};
@@ -324,10 +341,10 @@ function bind(){
 
  $('#goalForm').onsubmit=async e=>{e.preventDefault();await metaPut('monthlyGoal',Number($('#goalInput').value));$('#goalDialog').close();await renderDashboard();await renderSettings()};
  $('#saveMonthlyGoalBtn').onclick=async()=>{const v=Number($('#settingsMonthlyGoal').value);if(v>0){await metaPut('monthlyGoal',v);await renderDashboard();alert('Objectif mensuel mis à jour.')}};
- $('#roadmapForm').onsubmit=async e=>{e.preventDefault();await metaPut('roadmap',{targetBelt:$('#roadTargetBelt').value,tatamiTarget:Number($('#roadTatamiTarget').value),sparringTarget:Number($('#roadSparringTarget').value),techniqueTarget:Number($('#roadTechniqueTarget').value),tatamiBaseline:Number($('#roadTatamiBaseline').value||0),sparringBaseline:Number($('#roadSparringBaseline').value||0)});$('#roadmapDialog').close();await renderRoadmap()};
+ $('#roadmapForm').onsubmit=async e=>{e.preventDefault();await metaPut('roadmap',{targetBelt:$('#roadTargetBelt').value,tatamiTarget:Number($('#roadTatamiTarget').value),sparringTarget:Number($('#roadSparringTarget').value),tatamiBaseline:Number($('#roadTatamiBaseline').value||0),sparringBaseline:Number($('#roadSparringBaseline').value||0)});$('#roadmapDialog').close();await renderRoadmap()};
 
  $('#exportBtn').onclick=async()=>{
-   const payload={app:'MyBJJ Tracker',version:4,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),techniqueProgress:await metaGet('techniqueProgress'),sessions};
+   const payload={app:'MyBJJ Tracker',version:4,exportedAt:new Date().toISOString(),monthlyGoal:await metaGet('monthlyGoal'),roadmap:await metaGet('roadmap'),roadTargets:await metaGet('roadTargets'),techniqueProgress:await metaGet('techniqueProgress'),sessions};
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MyBJJ_backup_${ymd(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  };
  $('#importInput').onchange=async e=>{
@@ -339,6 +356,7 @@ function bind(){
      for(const s of data.sessions)await putSession({...s,status:s.status||'completed',sparringDuration:Number(s.sparringDuration||0)});
      if(data.monthlyGoal)await metaPut('monthlyGoal',Number(data.monthlyGoal));
      if(data.roadmap)await metaPut('roadmap',data.roadmap);
+     if(data.roadTargets)await metaPut('roadTargets',data.roadTargets);
      if(data.techniqueProgress)await metaPut('techniqueProgress',data.techniqueProgress);
      sessions=await getAll();await renderAll();alert('Import terminé.');
    }catch(err){alert('Impossible d’importer ce fichier JSON.')}
