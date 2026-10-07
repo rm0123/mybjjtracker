@@ -25,7 +25,7 @@ async function init(){
  sessions=await getAll();
  const latest=sessions.map(s=>s.date).sort().at(-1); if(latest){displayMonth=parseDate(latest);calendarMonth=parseDate(latest)}
  fillRefs(); bind(); renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=3');
 }
 function fillRefs(){
  const map={fType:'types',fProfessor:'professors',fAcademy:'academies',fGi:'gis',fIntensity:'intensities',fSlot:'slots'};
