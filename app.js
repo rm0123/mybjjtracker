@@ -26,6 +26,7 @@ function normaliseType(v){return String(v||'').normalize('NFD').replace(/[\u0300
 function isPrivateSession(s){return normaliseType(s.type)==='cours prive'}
 function isCardioSession(s){return normaliseType(s.type)==='cardio'}
 function isPrepaSession(s){return ['prepa','preparation physique'].includes(normaliseType(s.type))}
+function isBjjSession(s){return !isCardioSession(s)&&!isPrepaSession(s)}
 function sessionTypeClass(s){return isPrivateSession(s)?'private':isCardioSession(s)?'cardio':isPrepaSession(s)?'prepa':'jjb'}
 function sessionIcon(s){return isCardioSession(s)?'♥️':isPrepaSession(s)?'🏋️':'🥋'}
 function completed(){return sessions.filter(isCompleted)}
@@ -181,8 +182,9 @@ function renderCalendar(){
    if(!actual&&onlyPlanKind&&onlyPlanKind!=='jjb')classes.push(onlyPlanKind+'-planned-day');
    if(ds===today)classes.push('today');
    if(ds===selectedDay)classes.push('selected');
-   const actualIcon=onlyKind==='cardio'?'♥️':onlyKind==='prepa'?'🏋️':onlyKind==='private'?'🥋':'🥋';
-   const meta=[actual>0?`<span>${actualIcon} ${fmtH(actual)}</span>`:'',plannedHours>0?`<span>🗓 ${fmtH(plannedHours)}</span>`:''].join('');
+   const actualIcon=onlyKind==='cardio'?'♥️':onlyKind==='prepa'?'🏋️':'🥋';
+   const typeDots=doneKinds.length>1?`<span class="type-dots">${doneKinds.map(k=>`<i class="type-dot ${k}"></i>`).join('')}</span>`:'';
+   const meta=[actual>0?`<span>${actualIcon} ${fmtH(actual)}</span>`:'',typeDots,plannedHours>0?`<span>🗓 ${fmtH(plannedHours)}</span>`:''].join('');
    html+=`<button class="${classes.join(' ')}" data-date="${ds}" data-other="${other?'1':'0'}"><span class="daynum">${date.getDate()}</span><div class="daymeta">${meta}</div></button>`;
  }
  $('#calendarGrid').innerHTML=html;
@@ -296,8 +298,9 @@ async function renderTechniques(){
 async function renderRoadmap(){
  const settings=await metaGet('roadmap'),progress=await getTechniqueProgress(),roadTargets=await metaGet('roadTargets')||[];
  const targetSet=new Set(roadTargets),targetStates=roadTargets.map(k=>Number(progress[k]||0)),targetMastered=targetStates.filter(x=>x===2).length,targetKnown=targetStates.filter(x=>x===1).length;
- const tatami=Number(settings.tatamiBaseline||0)+sum(completed());
- const sparring=Number(settings.sparringBaseline||0)+sumSparring(completed());
+ const bjjCompleted=completed().filter(isBjjSession);
+ const tatami=Number(settings.tatamiBaseline||0)+sum(bjjCompleted);
+ const sparring=Number(settings.sparringBaseline||0)+sumSparring(bjjCompleted);
  const tatamiPct=pct(tatami,Number(settings.tatamiTarget||0)),sparringPct=pct(sparring,Number(settings.sparringTarget||0)),techPct=pct(targetMastered,roadTargets.length);
  const overall=Math.round((tatamiPct+sparringPct+techPct)/3);
  $('#roadGoalTitle').textContent=settings.targetBelt||'Objectif';$('#roadGoalSubtitle').textContent=`${targetKnown} connues · ${targetMastered} fiables · ${roadTargets.length} fondamentaux`;$('#roadOverallBar').style.width=overall+'%';$('#roadOverallPct').textContent=overall+'%';
