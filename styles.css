@@ -106,3 +106,5 @@ label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#4b5563}label in
 .inline-add{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px}.inline-add input{min-width:0}.inline-add button{white-space:nowrap}
 
 .road-index-label{display:block;margin-top:2px;color:#cbd5e1;font-size:10px;letter-spacing:.02em}
+
+.private-stat{background:#fff7ed;border-left:3px solid #f97316;padding-left:8px;border-radius:8px}
