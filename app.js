@@ -74,6 +74,7 @@ async function renderDashboard(){
  $('#monthSessions').textContent=doneMonth.length;
  $('#remaining').textContent=fmtH(remaining);
  $('#monthPotential').textContent=fmtH(potential);
+ $('#allHours').textContent=fmtH(sum(completed()));
  const actualPct=Math.min(100,(actual/goal)*100||0);
  $('#goalActualBar').style.width=actualPct+'%';
  $('#progressLabel').textContent=`${Math.round(actual/goal*100||0)}%`;
