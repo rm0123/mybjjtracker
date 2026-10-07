@@ -100,3 +100,4 @@ label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#4b5563}label in
   .inline-setting{grid-template-columns:1fr}.inline-setting .dark-btn{width:100%}
   .category-line{grid-template-columns:95px 1fr auto}
 }
+.inline-add{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px}.inline-add input{min-width:0}.inline-add button{white-space:nowrap}
