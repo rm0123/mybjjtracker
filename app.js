@@ -342,7 +342,13 @@ function bind(){
  $('#importInput').onchange=async e=>{
    const f=e.target.files[0];if(!f)return;
    try{
-     const data=JSON.parse(await f.text());if(!Array.isArray(data.sessions))throw Error('Format invalide');
+     const raw=await new Promise((resolve,reject)=>{
+       const reader=new FileReader();
+       reader.onload=()=>resolve(String(reader.result||'').replace(/^\\uFEFF/,''));
+       reader.onerror=()=>reject(reader.error||new Error('Lecture du fichier impossible'));
+       reader.readAsText(f,'UTF-8');
+     });
+     const data=JSON.parse(raw);if(!Array.isArray(data.sessions))throw Error('Format invalide : la liste sessions est absente');
      if(!confirm(`Importer ${data.sessions.length} séances ? Les séances locales actuelles seront remplacées.`))return;
      await new Promise((res,rej)=>{const r=tx(STORE,'readwrite').clear();r.onsuccess=res;r.onerror=rej});
      for(const s of data.sessions)await putSession({...s,status:s.status||'completed',sparringDuration:Number(s.sparringDuration||0)});
@@ -351,7 +357,7 @@ function bind(){
      if(data.roadTargets)await metaPut('roadTargets',data.roadTargets);
      if(data.techniqueProgress)await metaPut('techniqueProgress',data.techniqueProgress);
      sessions=await getAll();await renderAll();alert('Import terminé.');
-   }catch(err){alert('Impossible d’importer ce fichier JSON.')}
+   }catch(err){console.error('Import JSON:',err);alert('Impossible d’importer ce fichier JSON. '+(err?.message||'Erreur inconnue.'))}
    finally{e.target.value=''}
  };
 }
