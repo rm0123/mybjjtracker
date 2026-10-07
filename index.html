@@ -189,8 +189,14 @@
     <label>Sparring (h)<input id="fSparring" type="number" min="0" step=".25" value="0"></label>
   </div>
   <label>Type<select id="fType"></select></label>
-  <label>Professeur<select id="fProfessor"></select></label>
-  <label>Académie / Club<select id="fAcademy"></select></label>
+  <label>Professeur
+    <select id="fProfessor"></select>
+    <div class="inline-add"><input id="newProfessor" type="text" placeholder="Nouveau professeur"><button type="button" id="addProfessorBtn" class="secondary small">Ajouter</button></div>
+  </label>
+  <label>Académie / Club
+    <select id="fAcademy"></select>
+    <div class="inline-add"><input id="newAcademy" type="text" placeholder="Nouvelle académie"><button type="button" id="addAcademyBtn" class="secondary small">Ajouter</button></div>
+  </label>
   <div class="twocol"><label>Tenue<select id="fGi"></select></label><label>Intensité<select id="fIntensity"></select></label></div>
   <label>Créneau<select id="fSlot"></select></label>
   <label>Techniques<input id="fTechniques" placeholder="closed-guard, armbar…"></label>
