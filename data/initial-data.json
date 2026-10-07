@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "monthlyGoal": 15,
+  "sessions": [],
+  "references": {
+    "professors": ["Abdullatif", "Dalpran x Mendes", "François", "Non renseigné", "Prof IFT", "Thibault"],
+    "academies": ["AC Fight", "Cercle Tissier", "Houilles", "Infinity", "Non renseigné", "On Air"],
+    "types": ["Cours régulier", "Cours privé", "Open mat", "Autre"],
+    "gis": ["Gi", "No-Gi"],
+    "intensities": ["Normal", "Hard", "Easy"],
+    "slots": ["Morning", "Midday", "Evening"]
+  }
+}
