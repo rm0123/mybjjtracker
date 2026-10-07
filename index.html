@@ -74,7 +74,13 @@
   </section>
 
   <section id="stats" class="view">
-    <div class="sectiontitle"><h2>Statistiques</h2><span class="muted">Séances réalisées</span></div>
+    <div class="sectiontitle stats-title-row">
+      <div><h2>Statistiques</h2><span class="muted">Séances réalisées</span></div>
+      <div class="stats-value-toggle" role="group" aria-label="Afficher les répartitions en heures ou en pourcentage">
+        <button id="statsModeHours" class="active" type="button">Heures</button>
+        <button id="statsModePercent" type="button">%</button>
+      </div>
+    </div>
     <div class="cards stats-cards">
       <article><span>Total heures</span><strong id="statsHours">0 h</strong></article>
       <article><span>Total séances</span><strong id="statsSessions">0</strong></article>
@@ -244,6 +250,6 @@
 </dialog>
 
 <script src="./techniques.js?v=4"></script>
-<script src="./app.js?v=4.8"></script>
+<script src="./app.js?v=4.9"></script>
 </body>
 </html>
