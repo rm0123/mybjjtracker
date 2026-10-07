@@ -1,8 +1,8 @@
-const CACHE='mybjj-v4.7-cardio-prepa';
+const CACHE='mybjj-v4.7.1-prepa-yellow';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=4.7',
+  './styles.css?v=4.7.1',
   './techniques.js?v=4',
   './app.js?v=4.7',
   './manifest.webmanifest?v=4',
