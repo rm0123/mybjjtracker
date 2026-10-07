@@ -88,7 +88,7 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.7');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.7.2');
 }
 
 async function fillRefs(){
@@ -105,15 +105,17 @@ async function fillRefs(){
 
 async function renderDashboard(){
  const goal=Number(await metaGet('monthlyGoal')||15);
- const doneMonth=completed().filter(s=>inMonth(s,displayMonth));
- const planMonth=planned().filter(s=>inMonth(s,displayMonth));
+ const completedBjj=completed().filter(isBjjSession);
+ const plannedBjj=planned().filter(isBjjSession);
+ const doneMonth=completedBjj.filter(s=>inMonth(s,displayMonth));
+ const planMonth=plannedBjj.filter(s=>inMonth(s,displayMonth));
  const actual=sum(doneMonth), potential=sum(planMonth), remaining=Math.max(0,goal-actual);
  $('#monthTitle').textContent=monthName(displayMonth);
  $('#monthHours').textContent=fmtH(actual);
  $('#monthSessions').textContent=doneMonth.length;
  $('#remaining').textContent=fmtH(remaining);
  $('#monthPotential').textContent=fmtH(potential);
- $('#allHours').textContent=fmtH(sum(completed()));
+ $('#allHours').textContent=fmtH(sum(completedBjj));
  const actualPct=Math.min(100,(actual/goal)*100||0);
  $('#goalActualBar').style.width=actualPct+'%';
  $('#progressLabel').textContent=`${Math.round(actual/goal*100||0)}%`;
@@ -124,7 +126,7 @@ async function renderDashboard(){
  const year=displayMonth.getFullYear(), vals=[];
  for(let m=0;m<12;m++){
    const d=new Date(year,m,1);
-   vals.push({actual:sum(completed().filter(s=>inMonth(s,d))),planned:sum(planned().filter(s=>inMonth(s,d)))});
+   vals.push({actual:sum(completedBjj.filter(s=>inMonth(s,d))),planned:sum(plannedBjj.filter(s=>inMonth(s,d)))});
  }
  const max=Math.max(...vals.map(v=>v.actual+v.planned),1);
  $('#monthlyChart').innerHTML=vals.map((v,i)=>{
