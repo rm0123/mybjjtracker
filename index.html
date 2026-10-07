@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MyBJJ">
   <link rel="manifest" href="./manifest.webmanifest?v=4">
-  <link rel="stylesheet" href="./styles.css?v=4.7.1">
+  <link rel="stylesheet" href="./styles.css?v=4.8">
   <title>MyBJJ Tracker</title>
 </head>
 <body>
@@ -30,6 +30,10 @@
       <article><span>Reste à faire</span><strong id="remaining">0 h</strong></article>
       <article><span>Total</span><strong id="allHours">0 h</strong></article>
       <article><span>Heures potentielles</span><strong id="monthPotential">0 h</strong></article>
+    </div>
+    <div class="cards training-cards">
+      <article><span>Conditioning</span><strong id="monthConditioningSessions">0</strong><small>séances du mois</small></article>
+      <article><span>Strength &amp; Conditioning</span><strong id="monthSCSessions">0</strong><small>séances du mois</small></article>
     </div>
     <article class="panel">
       <div class="panelhead"><h3>Objectif mensuel</h3><b id="progressLabel"></b></div>
@@ -62,8 +66,8 @@
       <span><i class="legend-dot strong"></i>Forte ≥ 2 h</span>
       <span><i class="legend-dot planned"></i>Planifiée</span>
       <span><i class="legend-dot private"></i>Cours privé</span>
-      <span><i class="legend-dot cardio"></i>Cardio</span>
-      <span><i class="legend-dot prepa"></i>Prépa</span>
+      <span><i class="legend-dot cardio"></i>Conditioning</span>
+      <span><i class="legend-dot prepa"></i>S&amp;C</span>
     </div>
     <div class="weekdays"><b>L</b><b>M</b><b>M</b><b>J</b><b>V</b><b>S</b><b>D</b></div>
     <div id="calendarGrid" class="calendargrid"></div>
@@ -242,6 +246,6 @@
 </dialog>
 
 <script src="./techniques.js?v=4"></script>
-<script src="./app.js?v=4.7.2"></script>
+<script src="./app.js?v=4.8"></script>
 </body>
 </html>
