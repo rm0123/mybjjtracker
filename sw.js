@@ -1,4 +1,4 @@
-const CACHE='mybjj-v4.3-custom-refs';
+const CACHE='mybjj-v4.4-blue-belt-roadmap';
 const ASSETS=[
   './',
   './index.html',
