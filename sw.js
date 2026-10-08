@@ -1,10 +1,10 @@
-const CACHE='mybjj-v4.9.1-academy-breakdown';
+const CACHE='mybjj-v4.9.2-academy-breakdown';
 const ASSETS=[
   './',
   './index.html',
   './styles.css?v=4.8.3',
   './techniques.js?v=4',
-  './app.js?v=4.9.1',
+  './app.js?v=4.9.2',
   './manifest.webmanifest?v=4',
   './data/initial-data.json',
   './icons/icon-192.svg',
