@@ -106,7 +106,7 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.9');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.9.1');
 }
 
 async function fillRefs(){
@@ -278,7 +278,7 @@ function renderStats(){
  const done=completed(),totalHours=sum(done),best=bestMonth();
  $('#statsHours').textContent=fmtH(totalHours);$('#statsSessions').textContent=done.length;$('#statsAverage').textContent=done.length?fmtH(totalHours/done.length):'0 h';
  $('#statsBestMonth').innerHTML=best.hours?`${esc(best.label)}<span class="muted" style="display:block;margin-top:3px">${fmtH(best.hours)}</span>`:'—';
- $('#statsTrend').innerHTML=trendHTML(trendData());$('#typeDonut').innerHTML=donutHTML(group(done,'type'),6);$('#academyDonut').innerHTML=donutHTML(group(done,'academy'),6);$('#profChart').innerHTML=rankChartHTML(group(done,'professor'));
+ $('#statsTrend').innerHTML=trendHTML(trendData());$('#typeDonut').innerHTML=donutHTML(group(done,'type'),8);$('#academyDonut').innerHTML=donutHTML(group(done,'academy'),12);$('#profChart').innerHTML=rankChartHTML(group(done,'professor'));
  const cross={};done.forEach(s=>{const k=`${s.academy||'Non renseigné'} — ${s.professor||'Non renseigné'}`;cross[k]??={hours:0,count:0};cross[k].hours+=Number(s.duration||0);cross[k].count++});$('#crossStats').innerHTML=rows(cross);
 }
 
