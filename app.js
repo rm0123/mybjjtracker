@@ -106,7 +106,7 @@ async function init(){
  displayMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
  await fillRefs();bind();await renderAll();
- if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.9.1');
+ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=4.9.2');
 }
 
 async function fillRefs(){
